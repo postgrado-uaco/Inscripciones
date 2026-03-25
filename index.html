@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herramientas de inscripciones — Posgrado UACO</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a18; min-height: 100vh; padding: 3rem 1rem; }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header { margin-bottom: 36px; }
+  .header h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #888; }
+
+  /* Herramientas fijas */
+  .section-title { font-size: 11px; font-weight: 500; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 36px; }
+  @media (max-width: 500px) { .tools-grid { grid-template-columns: 1fr; } }
+
+  .tool-card {
+    background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px;
+    padding: 16px 18px; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .tool-card:hover { border-color: #bbb; transform: translateY(-2px); }
+  .tool-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .icon-dni { background: #E1F5EE; }
+  .icon-comp { background: #E6F1FB; }
+  .icon-tit { background: #EEEDFE; }
+  .icon-venta { background: #FAECE7; }
+  .tool-name { font-size: 14px; font-weight: 500; }
+  .tool-desc { font-size: 12px; color: #888; line-height: 1.5; }
+  .tool-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pill { font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 500; }
+  .pill-dni { background: #E1F5EE; color: #0F6E56; }
+  .pill-comp { background: #E6F1FB; color: #185FA5; }
+  .pill-tit { background: #EEEDFE; color: #534AB7; }
+  .pill-venta { background: #FAECE7; color: #993C1D; }
+
+  /* Planillas dinámicas */
+  .sheets-section { margin-bottom: 36px; }
+  .sheet-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .sheet-item {
+    background: #fff; border: 0.5px solid #e0e0e0; border-radius: 10px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .sheet-icon { font-size: 18px; flex-shrink: 0; }
+  .sheet-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .sheet-name-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .sheet-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .sheet-btn {
+    font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: 6px;
+    border: 0.5px solid #ddd; background: #f8f8f6; color: #333;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .sheet-btn:hover { background: #eee; }
+  .sheet-btn-primary { background: #FAECE7; color: #993C1D; border-color: #F0997B; }
+  .sheet-btn-primary:hover { background: #F5C4B3; }
+
+  .loading { font-size: 13px; color: #aaa; padding: 16px 0; }
+  .error-msg { font-size: 13px; color: #A32D2D; background: #FCEBEB; padding: 10px 14px; border-radius: 8px; }
+
+  /* Config */
+  .config-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .config-bar input { flex: 1; min-width: 200px; padding: 7px 10px; font-size: 12px; border: 1px solid #ccc; border-radius: 7px; background: #fff; color: #1a1a18; outline: none; }
+  .config-bar input:focus { border-color: #D85A30; }
+  .config-bar button { padding: 7px 14px; font-size: 12px; font-weight: 500; border-radius: 7px; border: none; background: #D85A30; color: #fff; cursor: pointer; white-space: nowrap; }
+  .config-bar button:disabled { opacity: 0.5; }
+
+  .footer { font-size: 12px; color: #ccc; text-align: center; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Herramientas de inscripciones</h1>
+    <p>Investigación y Posgrado UACO — procesamiento automático con IA</p>
+  </div>
+
+  <!-- Planillas dinámicas -->
+  <div class="sheets-section">
+    <p class="section-title">Planillas disponibles</p>
+    <div class="config-bar">
+      <input type="password" id="apiKey" placeholder="Gemini API Key (AIzaSy...)" />
+      <button onclick="cargarPlanillas()" id="btnCargar">Cargar planillas →</button>
+    </div>
+    <p id="key-guardada" style="font-size:12px;color:#1D9E75;margin-bottom:10px;display:none">✓ API Key guardada</p>
+    <div id="sheet-list" class="sheet-list">
+      <p class="loading">Ingresá tu API Key para ver las planillas disponibles.</p>
+    </div>
+  </div>
+
+  <!-- Herramientas fijas -->
+  <div>
+    <p class="section-title">Herramientas</p>
+    <div class="tools-grid">
+      <a class="tool-card" href="extractor_dni.html">
+        <div class="tool-icon icon-dni">🪪</div>
+        <div class="tool-name">Extractor de DNI</div>
+        <div class="tool-desc">Apellido, nombre y número de documento.</div>
+        <div class="tool-pills">
+          <span class="pill pill-dni">Apellido</span>
+          <span class="pill pill-dni">Nombre</span>
+          <span class="pill pill-dni">Número</span>
+        </div>
+      </a>
+      <a class="tool-card" href="extractor_comprobantes.html">
+        <div class="tool-icon icon-comp">🧾</div>
+        <div class="tool-name">Comprobantes de pago</div>
+        <div class="tool-desc">Monto, fecha, CVU e ID de transacción.</div>
+        <div class="tool-pills">
+          <span class="pill pill-comp">Monto</span>
+          <span class="pill pill-comp">Fecha</span>
+          <span class="pill pill-comp">CVU</span>
+        </div>
+      </a>
+      <a class="tool-card" href="extractor_titulos.html">
+        <div class="tool-icon icon-tit">🎓</div>
+        <div class="tool-name">Títulos de grado</div>
+        <div class="tool-desc">Carrera y universidad del título adjunto.</div>
+        <div class="tool-pills">
+          <span class="pill pill-tit">Título</span>
+          <span class="pill pill-tit">Universidad</span>
+        </div>
+      </a>
+      <a class="tool-card" href="extractor_planilla_ventas.html">
+        <div class="tool-icon icon-venta">📊</div>
+        <div class="tool-name">Planilla de ventas</div>
+        <div class="tool-desc">Genera la planilla completa lista para exportar.</div>
+        <div class="tool-pills">
+          <span class="pill pill-venta">25 columnas</span>
+          <span class="pill pill-venta">CSV</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">Powered by Gemini · Google Apps Script</div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNLpsTxnouHcl1gtOxNGmUkwoMp00oQsVRzEYeCMXEHXuRd8Ofeg1i8lFFuZTF7ZFcvg/exec';
+
+function normalizarNombre(nombre) {
+  return nombre
+    .replace(/^\d{4}\s*[-–]\s*/i, '')
+    .replace(/\s*\(File responses\)\s*$/i, '')
+    .replace(/\s*\(respuestas\)\s*$/i, '')
+    .replace(/\s*\(?respuestas\)?\s*$/i, '')
+    .trim();
+}
+
+window.onload = function() {
+  const saved = localStorage.getItem('gemini_api_key');
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('key-guardada').style.display = 'block';
+    cargarPlanillas();
+  }
+};
+
+async function cargarPlanillas() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('Ingresá tu Gemini API Key primero.'); return; }
+  localStorage.setItem('gemini_api_key', apiKey);
+  document.getElementById('key-guardada').style.display = 'block';
+
+  const btn = document.getElementById('btnCargar');
+  btn.disabled = true; btn.textContent = 'Cargando...';
+  document.getElementById('sheet-list').innerHTML = '<p class="loading">Buscando planillas...</p>';
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=listSheets`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderSheets(data.sheets || []);
+  } catch(e) {
+    document.getElementById('sheet-list').innerHTML = `<p class="error-msg">Error al cargar planillas: ${e.message}</p>`;
+  }
+
+  btn.disabled = false; btn.textContent = 'Actualizar →';
+}
+
+function renderSheets(sheets) {
+  const list = document.getElementById('sheet-list');
+  if (sheets.length === 0) {
+    list.innerHTML = '<p class="loading">No se encontraron planillas en la carpeta.</p>';
+    return;
+  }
+  const apiKey = document.getElementById('apiKey').value.trim();
+  list.innerHTML = '';
+  sheets.forEach(sheet => {
+    const nombre = normalizarNombre(sheet.name);
+    const item = document.createElement('div');
+    item.className = 'sheet-item';
+    item.innerHTML = `
+      <div class="sheet-icon">📋</div>
+      <div style="flex:1">
+        <div class="sheet-name">${nombre}</div>
+        <div class="sheet-name-sub">${sheet.name}</div>
+      </div>
+      <div class="sheet-actions">
+        <a class="sheet-btn" href="extractor_dni.html?sheetId=${sheet.id}&apiKey=${encodeURIComponent(apiKey)}">DNI</a>
+        <a class="sheet-btn" href="extractor_comprobantes.html?sheetId=${sheet.id}&apiKey=${encodeURIComponent(apiKey)}">Comprobantes</a>
+        <a class="sheet-btn" href="extractor_titulos.html?sheetId=${sheet.id}&apiKey=${encodeURIComponent(apiKey)}">Títulos</a>
+        <a class="sheet-btn sheet-btn-primary" href="extractor_planilla_ventas.html?sheetId=${sheet.id}&sheetName=${encodeURIComponent(sheet.name)}&apiKey=${encodeURIComponent(apiKey)}">Planilla ventas</a>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+}
+</script>
+</body>
+</html>
