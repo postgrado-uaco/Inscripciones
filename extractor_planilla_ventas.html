@@ -499,10 +499,10 @@ function exportCSV() {
   }));
 
   const csv = [cols, ...rows.map(r => cols.map(c => r[c]))]
-    .map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(','))
+    .map(r => r.map(c => String(c || '').replace(/,/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '')).join(','))
     .join('\n');
 
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `Facturar-${leyenda || 'planilla'}.csv`;
