@@ -53,6 +53,7 @@
   .stat-num { font-size: 22px; font-weight: 500; }
   .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body onload="cargarKey()">
 <div class="container">
@@ -98,7 +99,10 @@
   <div id="step-running" style="display:none">
     <div class="top-bar">
       <p style="font-size:14px;font-weight:500" id="running-title">Procesando inscripciones...</p>
-      <button class="btn btn-export" id="btnExport" style="display:none" onclick="exportCSV()">Exportar planilla CSV</button>
+      <div id="btnExportWrap" style="display:none;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-export" id="btnExportCSV" onclick="exportCSV()">Exportar CSV</button>
+      <button class="btn" style="background:#1D6B3B;color:#fff;" id="btnExportXLS" onclick="exportXLS()">Exportar XLS</button>
+    </div>
     </div>
     <div class="progress-label"><span id="prog-text">0 de 0</span><span id="prog-pct">0%</span></div>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
@@ -439,7 +443,7 @@ async function runOne() {
   document.getElementById('prog-fill').style.width = '0%';
   await processRow(idx);
   document.getElementById('running-title').textContent = 'Procesamiento completo';
-  document.getElementById('btnExport').style.display = 'inline-block';
+  document.getElementById('btnExportWrap').style.display = 'flex';
   addLog('running', 'Procesamiento completado.');
 }
 
@@ -456,7 +460,7 @@ async function runAll() {
     await new Promise(r => setTimeout(r, 600));
   }
   document.getElementById('running-title').textContent = 'Procesamiento completo';
-  document.getElementById('btnExport').style.display = 'inline-block';
+  document.getElementById('btnExportWrap').style.display = 'flex';
   addLog('running', 'Procesamiento completado.');
 }
 
@@ -508,6 +512,50 @@ function exportCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = `Facturar-${leyenda || 'planilla'}.csv`;
   a.click();
+}
+
+function exportXLS() {
+  const cols = [
+    'concepto_venta','cliente_apellido','cliente_nombre','cliente_dni',
+    'cliente_calle','cliente_numero','cliente_piso','cliente_depto',
+    'cliente_cp','cliente_cp_desc','cliente_email','forma_pago',
+    'leyenda','importe_cobrado','medio_pago','cliente_tipo_doc',
+    'condicion_fiscal','fecha_pago','id_transaccion',
+    'pagador_nombres','pagador_apellido','pagador_razon_social',
+    'pagador_numero_doc','pagador_tipo_doc','pagador_domicilio'
+  ];
+  const filtered = results.filter(r => r.importe_cobrado && r.importe_cobrado.toString().trim() !== '');
+  const rows = filtered.map(r => ({
+    concepto_venta: 'POSGCUR-CO',
+    cliente_apellido: r.cliente_apellido,
+    cliente_nombre: r.cliente_nombre,
+    cliente_dni: r.cliente_dni,
+    cliente_calle: r.cliente_calle,
+    cliente_numero: r.cliente_numero,
+    cliente_piso: r.cliente_piso,
+    cliente_depto: r.cliente_depto,
+    cliente_cp: r.cliente_cp,
+    cliente_cp_desc: r.cliente_cp_desc,
+    cliente_email: r.cliente_email,
+    forma_pago: 'total',
+    leyenda: r.leyenda,
+    importe_cobrado: r.importe_cobrado,
+    medio_pago: '13',
+    cliente_tipo_doc: 'DNI',
+    condicion_fiscal: '5',
+    fecha_pago: r.fecha_pago,
+    id_transaccion: r.id_transaccion,
+    pagador_nombres: r.pagador_nombres,
+    pagador_apellido: r.pagador_apellido,
+    pagador_razon_social: r.pagador_razon_social,
+    pagador_numero_doc: r.pagador_numero_doc,
+    pagador_tipo_doc: r.pagador_tipo_doc,
+    pagador_domicilio: r.pagador_domicilio,
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows, { header: cols });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
+  XLSX.writeFile(wb, `Facturar-${leyenda || 'planilla'}.xls`, { bookType: 'xls' });
 }
 </script>
 </body>
