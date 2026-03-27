@@ -161,9 +161,10 @@ function extractFileId(url) {
 function normalizarLeyenda(titulo) {
   return titulo
     .replace(/\s*\(File responses\)\s*$/i, '')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i, '')
     .replace(/\s*\(respuestas\)\s*$/i, '')
     .replace(/\s*\(?respuestas\)?\s*$/i, '')
-    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g, "")
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019\u02BC\u2032]/g, '')
     .trim();
 }
 
@@ -470,7 +471,7 @@ function exportCSV() {
     'pagador_numero_doc', 'pagador_tipo_doc', 'pagador_domicilio'
   ];
 
-  const rows = results.map(r => ({
+  const rows = results.filter(r => r.importe_cobrado && r.importe_cobrado.toString().trim() !== '').map(r => ({
     concepto_venta: 'POSGCUR-CO',
     cliente_apellido: r.cliente_apellido,
     cliente_nombre: r.cliente_nombre,
