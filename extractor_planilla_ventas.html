@@ -3,153 +3,261 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de planilla de ventas</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a18; min-height: 100vh; padding: 2rem 1rem; }
-  .container { max-width: 720px; margin: 0 auto; }
-  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
-  .subtitle { font-size: 13px; color: #666; margin-bottom: 28px; }
-  .card { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  label { font-size: 13px; color: #555; display: block; margin-bottom: 6px; }
-  input[type="password"], input[type="text"] { width: 100%; padding: 9px 12px; font-size: 13px; border: 1px solid #ccc; border-radius: 8px; background: #fff; color: #1a1a18; outline: none; transition: border-color 0.2s; }
-  input:focus { border-color: #D85A30; }
-  .field { margin-bottom: 14px; }
-  .btn { padding: 9px 20px; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; border: none; transition: opacity 0.2s; }
-  .btn-primary { background: #D85A30; color: #fff; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { background: #f0f0ee; color: #333; border: 1px solid #ddd; }
-  .btn-export { background: #1D9E75; color: #fff; }
-  .info-box { background: #f0f0ee; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #555; margin-bottom: 16px; line-height: 1.6; }
-  .log { font-size: 12px; color: #666; background: #f8f8f6; border-radius: 6px; padding: 10px; white-space: pre-wrap; font-family: monospace; margin-top: 12px; max-height: 150px; overflow-y: auto; }
-  .progress-bar-wrap { height: 4px; background: #eee; border-radius: 2px; overflow: hidden; margin: 6px 0; }
-  .progress-bar-fill { height: 100%; background: #D85A30; border-radius: 2px; transition: width 0.3s ease; }
-  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 4px; }
-  .row-item { border: 0.5px solid #e0e0e0; border-radius: 8px; margin-bottom: 8px; overflow: hidden; background: #fff; }
-  .row-header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; user-select: none; }
-  .row-header:hover { background: #fafafa; }
-  .row-num { font-size: 12px; color: #aaa; min-width: 28px; }
-  .row-main { flex: 1; }
-  .row-name { font-size: 14px; font-weight: 500; }
-  .row-sub { font-size: 12px; color: #888; margin-top: 2px; }
-  .row-body { padding: 10px 14px; border-top: 0.5px solid #eee; font-size: 12px; }
-  .row-body table { width: 100%; border-collapse: collapse; }
-  .row-body td { padding: 3px 0; vertical-align: top; }
-  .row-body td:first-child { color: #888; width: 180px; font-size: 11px; }
-  .badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
-  .badge-ok { background: #EAF3DE; color: #3B6D11; border: 0.5px solid #97C459; }
-  .badge-error { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
-  .badge-processing { background: #FAEEDA; color: #854F0B; border: 0.5px solid #EF9F27; }
-  .badge-pending { background: #F1EFE8; color: #5F5E5A; border: 0.5px solid #B4B2A9; }
-  .badge-sinarchivo { background: #E6F1FB; color: #185FA5; border: 0.5px solid #85B7EB; }
-  .chevron { font-size: 11px; color: #aaa; }
-  .list-wrap { max-height: 460px; overflow-y: auto; }
-  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .top-bar-info p { margin: 0; }
-  .error-detail { color: #A32D2D; font-size: 11px; }
-  a { color: #D85A30; }
-  .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-  .stat { background: #f8f8f6; border-radius: 8px; padding: 10px 16px; font-size: 13px; flex: 1; min-width: 120px; }
-  .stat-num { font-size: 22px; font-weight: 500; }
-  .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
-</style>
+<title>Planilla de ventas — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;--surf-hx:#e2e3e1;
+  --sec-c:#cfe6f2;--on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;--err:#ba1a1a;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shm:0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3,h4{font-family:var(--fh);}
+
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+
+.app-body{display:flex;flex:1;overflow:hidden;}
+
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+.main{flex:1;overflow-y:auto;padding:32px 28px;}
+
+/* BREADCRUMB */
+.bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--on-sv);margin-bottom:20px;flex-wrap:wrap;}
+.bc a{color:var(--primary);font-weight:600;text-decoration:none;}
+.bc a:hover{text-decoration:underline;}
+.bc-sep{color:var(--ov);}
+.bc-cur{font-weight:600;color:var(--on-s);}
+
+.ph{margin-bottom:24px;}
+.ph h1{font-size:28px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);line-height:1.6;}
+
+/* CURSOS */
+.curso-list{display:flex;flex-direction:column;gap:10px;}
+.curso-item{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:border-color .15s;}
+.curso-item:hover{border-color:var(--primary-c);}
+.curso-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.curso-name{font-size:14px;font-weight:700;color:var(--on-s);flex:1;min-width:160px;}
+.curso-badges{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.curso-count{font-size:12px;font-weight:700;color:var(--primary);background:var(--on-pc);padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-open{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;white-space:nowrap;}
+.badge-closed{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#fdecea;color:#c62828;border:1px solid #ef9a9a;white-space:nowrap;}
+
+/* BTN */
+.btn{padding:9px 18px;font-size:13px;font-weight:600;border-radius:var(--rsm);border:none;background:var(--primary);color:#fff;cursor:pointer;font-family:var(--fb);transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{background:var(--primary-c);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-o{background:#fff;color:var(--on-sv);border:1.5px solid var(--ov);}
+.btn-o:hover{background:var(--surf-c);}
+.btn-g{background:#1D9E75;color:#fff;}
+.btn-g:hover{background:#178a64;}
+
+/* PROGRESO */
+.prog-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:20px;}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+.prog-title{font-size:14px;font-weight:700;}
+.prog-bar-bg{height:6px;background:var(--surf-hi);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.prog-bar-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .3s ease;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--on-sv);}
+.prog-log{font-size:11.5px;color:var(--on-sv);background:var(--surf-lo);border-radius:8px;padding:10px 13px;font-family:'Courier New',monospace;max-height:110px;overflow-y:auto;margin-top:10px;display:none;line-height:1.6;}
+
+/* TABLA */
+.tbl-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.tbl-header{padding:14px 18px;border-bottom:1px solid var(--ov);display:flex;align-items:center;justify-content:space-between;background:var(--surf-lo);flex-wrap:wrap;gap:10px;}
+.tbl-title{font-size:14px;font-weight:700;}
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--surf-c);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+td{padding:11px 14px;border-top:1px solid var(--ov);vertical-align:middle;font-size:13px;color:var(--on-s);font-family:var(--fb);}
+tr:hover td{background:var(--surf-lo);}
+.td-ok{color:#2e7d32;font-weight:600;}
+.td-warn{color:#854F0B;font-weight:600;}
+.td-err{color:var(--err);font-size:11.5px;}
+.tbl-footer{padding:10px 18px;border-top:1px solid var(--ov);font-size:12px;color:var(--on-sv);font-weight:500;background:var(--surf-lo);display:flex;justify-content:space-between;align-items:center;}
+
+/* ALERT */
+.al{padding:12px 16px;border-radius:var(--rsm);font-size:13px;font-weight:500;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;}
+.al-e{background:#fdecea;border:1px solid #f5c2c2;color:var(--err);}
+.al-s{background:var(--on-pc);border:1px solid var(--primary-c);color:var(--primary);}
+.al-w{background:#fff8e1;border:1px solid #ffe082;color:#6d4c00;}
+.empty{text-align:center;padding:40px;color:var(--on-sv);font-size:13.5px;font-weight:500;}
+.sp{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* STATUS BADGES en tabla */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.st-ok{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
+.st-warn{background:#fff8e1;color:#6d4c00;border:1px solid #ffe082;}
+.st-err{background:#fdecea;color:#c62828;border:1px solid #ef9a9a;}
+.st-proc{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;}
+.st-pend{background:var(--surf-c);color:var(--on-sv);border:1px solid var(--ov);}
+.st-sc{background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;}
+</style>
 </head>
-<body onload="cargarKey()">
-<div class="container">
-  <h1>Generador de planilla de ventas</h1>
-  <p class="subtitle">Taller de IA — inscripciones posgrado</p>
+<body>
 
-  <div id="step-config">
-    <div class="card">
-      <div class="info-box">
-        Genera automáticamente la planilla de ventas combinando datos de DNI y comprobantes de pago. Exporta directo al formato requerido.
-      </div>
-      <div class="field">
-        <label>URL del Apps Script</label>
-        <input type="text" id="scriptUrl" value="https://script.google.com/macros/s/AKfycbwNLpsTxnouHcl1gtOxNGmUkwoMp00oQsVRzEYeCMXEHXuRd8Ofeg1i8lFFuZTF7ZFcvg/exec" />
-      </div>
-      <div class="field">
-        <label>Gemini API Key (gratuita)</label>
-        <input type="password" id="apiKey" placeholder="AIzaSy..." />
-        <p id="key-guardada" style="font-size:12px;color:#1D9E75;margin-top:6px;display:none">✓ Key guardada — podés cambiarla si querés</p>
-      </div>
-      <button class="btn btn-primary" id="btnLoad" onclick="fetchSheet()">Cargar planilla →</button>
-      <div id="log-config" class="log" style="display:none"></div>
-    </div>
+<header class="hdr">
+  <div>
+    <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
+    <div class="hdr-sub">UNPA-UACO</div>
   </div>
+  <div class="av">AD</div>
+</header>
 
-  <div id="step-preview" style="display:none">
-    <div class="top-bar">
-      <div class="top-bar-info">
-        <p style="font-size:14px;font-weight:500" id="preview-count"></p>
-        <p style="font-size:12px;color:#888">Revisá la lista antes de procesar</p>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="runAll()">Procesar todos →</button>
-        <span style="font-size:13px;color:#888">o fila:</span>
-        <input type="number" id="filaElegida" min="1" placeholder="ej: 3" style="width:80px;padding:8px 10px;font-size:13px;border:1px solid #ccc;border-radius:8px;" />
-        <button class="btn btn-secondary" onclick="runOne()">Procesar esa fila →</button>
-      </div>
-    </div>
-    <div class="list-wrap" id="list-preview"></div>
-    <div id="log-preview" class="log" style="display:none"></div>
-  </div>
+<div class="app-body">
+  <nav class="sb">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+      Principal
+    </a>
+    <a class="sb-item on" href="index.html" onclick="sessionStorage.setItem('goto','herramientas')">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
+      Herramientas
+    </a>
+  </nav>
 
-  <div id="step-running" style="display:none">
-    <div class="top-bar">
-      <p style="font-size:14px;font-weight:500" id="running-title">Procesando inscripciones...</p>
-      <div id="btnExportWrap" style="display:none;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-export" id="btnExportCSV" onclick="exportCSV()">Exportar CSV</button>
-      <button class="btn" style="background:#1D6B3B;color:#fff;" id="btnExportXLS" onclick="exportXLS()">Exportar XLS</button>
+  <main class="main" style="max-width:1040px;">
+
+    <!-- PASO 1: LISTA DE CURSOS -->
+    <div id="step-cursos">
+      <nav class="bc">
+        <a href="index.html">Inicio</a>
+        <span class="bc-sep">›</span>
+        <a href="index.html" onclick="sessionStorage.setItem('goto','herramientas');return true;">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Planilla de ventas</span>
+      </nav>
+      <div class="ph">
+        <h1>Planilla de ventas</h1>
+        <p>Seleccioná el curso para generar la planilla combinando datos de DNI y comprobantes de pago.</p>
+      </div>
+      <div id="al-cursos"></div>
+      <div id="curso-list" class="curso-list">
+        <div class="empty">⏳ Cargando cursos disponibles...</div>
+      </div>
     </div>
+
+    <!-- PASO 2: PROCESAMIENTO Y TABLA -->
+    <div id="step-proceso" style="display:none">
+      <nav class="bc" id="bc-proceso">
+        <a href="index.html">Inicio</a>
+        <span class="bc-sep">›</span>
+        <a href="index.html" onclick="sessionStorage.setItem('goto','herramientas');return true;">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <a href="#" onclick="volverCursos();return false;">Planilla de ventas</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bc-nombre"></span>
+      </nav>
+      <div class="ph">
+        <h1>Planilla de ventas</h1>
+        <p id="proc-curso-nombre" style="font-weight:600;color:var(--primary)"></p>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="prog-wrap">
+        <div class="prog-header">
+          <div class="prog-title" id="proc-title">Procesando inscripciones...</div>
+        </div>
+        <div class="prog-lbl">
+          <span id="proc-txt">0 de 0</span>
+          <span id="proc-pct">0%</span>
+        </div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="proc-bar" style="width:0%"></div></div>
+        <div id="proc-errs" style="font-size:12px;color:var(--err);margin-top:6px;font-weight:600;display:none"></div>
+        <div id="proc-log" class="prog-log" style="display:block;min-height:40px">Iniciando...</div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div id="tbl-wrap" class="tbl-wrap" style="display:none">
+        <div class="tbl-header">
+          <div class="tbl-title" id="tbl-title">Resultados</div>
+          <button class="btn btn-g" onclick="exportXLS()" style="padding:7px 14px;font-size:12.5px">⬇ Descargar .xls</button>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Apellido y nombre</th>
+                <th>Correo electrónico</th>
+                <th>Tipo inscripción</th>
+                <th>Importe</th>
+                <th>Fecha de pago</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+        <div class="tbl-footer">
+          <span id="tbl-count"></span>
+          <span id="tbl-errors" style="color:var(--err)"></span>
+        </div>
+      </div>
     </div>
-    <div class="progress-label"><span id="prog-text">0 de 0</span><span id="prog-pct">0%</span></div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
-    <div id="error-count" style="font-size:12px;color:#A32D2D;margin-top:4px;display:none"></div>
-    <div class="list-wrap" style="margin-top:12px" id="list-running"></div>
-    <div id="log-running" class="log" style="display:none"></div>
-  </div>
+
+  </main>
 </div>
 
+
 <script>
-let results = [];
-let leyenda = '';
-let doneCount = 0;
-let errorCount = 0;
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_-amJRfKBax0Cj3dAKM_ghdxl9eFPdzjOmiUB8Quh4miZOnijqsfm24QR5NPsiv9y/exec';
+const FOLDER_ID  = '1AQnG88tlwQGkGYeTz3qJ_cbEEa2sV2NV';
 
-function cargarKey() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('scriptUrl')) {
-    document.getElementById('scriptUrl').value = params.get('scriptUrl');
-  }
-  if (params.get('apiKey')) {
-    document.getElementById('apiKey').value = params.get('apiKey');
-    localStorage.setItem('gemini_api_key', params.get('apiKey'));
-    document.getElementById('key-guardada').style.display = 'block';
-  } else {
-    const saved = localStorage.getItem('gemini_api_key');
-    if (saved) {
-      document.getElementById('apiKey').value = saved;
-      document.getElementById('key-guardada').style.display = 'block';
-    }
-  }
-  const backBtn = document.createElement('a');
-  backBtn.href = 'index.html';
-  backBtn.style.cssText = 'display:inline-block;font-size:12px;color:#888;text-decoration:none;margin-bottom:16px;';
-  backBtn.textContent = '← Volver al inicio';
-  document.querySelector('.container').insertBefore(backBtn, document.querySelector('h1'));
+let results     = [];
+let cursoActual = {};
+let doneCount   = 0;
+let errorCount  = 0;
+let apiKey      = '';
+
+/* ── Utilidades ─────────────────────────────────────────── */
+
+function getApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
 }
 
-function guardarKey() {
-  const key = document.getElementById('apiKey').value.trim();
-  if (key) localStorage.setItem('gemini_api_key', key);
+function normNombre(n) {
+  return n
+    .replace(/^\d{4}\s*[-\u2013]\s*/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g,'')
+    .trim();
 }
 
-function addLog(stepId, msg) {
-  const el = document.getElementById('log-' + stepId);
+function normLeyenda(n) {
+  return (n || '')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019\u02BC\u2032]/g,'')
+    .trim();
+}
+
+function addLog(msg) {
+  console.log('[LOG]', msg);
+  const el = document.getElementById('proc-log');
   el.style.display = 'block';
-  el.textContent += (el.textContent ? '\n' : '') + msg;
+  el.textContent = el.textContent === 'Iniciando...' ? msg : el.textContent + '\n' + msg;
   el.scrollTop = el.scrollHeight;
 }
 
@@ -162,360 +270,305 @@ function extractFileId(url) {
   return null;
 }
 
-function normalizarLeyenda(titulo) {
-  return titulo
-    .replace(/\s*\(File responses\)\s*$/i, '')
-    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i, '')
-    .replace(/\s*\(respuestas\)\s*$/i, '')
-    .replace(/\s*\(?respuestas\)?\s*$/i, '')
-    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019\u02BC\u2032]/g, '')
-    .trim();
-}
-
-function renderRow(item, idx, listId) {
-  const list = document.getElementById(listId);
-  const existing = document.getElementById('row-' + idx);
-  let badgeClass, badgeLabel;
-  if (item.status === 'sin-archivo') { badgeClass = 'badge-sinarchivo'; badgeLabel = 'Sin archivo'; }
-  else {
-    badgeClass = { ok: 'badge-ok', error: 'badge-error', processing: 'badge-processing', pending: 'badge-pending' }[item.status] || 'badge-pending';
-    badgeLabel = { ok: 'OK', error: 'Error', processing: 'Procesando...', pending: 'Pendiente' }[item.status] || 'Pendiente';
-  }
-  const displayName = (item.cliente_apellido && item.cliente_nombre)
-    ? `${item.cliente_apellido}, ${item.cliente_nombre}`
-    : item.nombre_formulario || '—';
-  const sub = item.importe_cobrado ? `$${item.importe_cobrado} — ${item.fecha_pago || 'sin fecha'}` : 'Sin datos aún';
-
-  const html = `
-    <div class="row-header" onclick="toggleRow(${idx})">
-      <span class="row-num">#${idx + 1}</span>
-      <div class="row-main">
-        <div class="row-name">${displayName}</div>
-        <div class="row-sub">${sub}</div>
-      </div>
-      <span class="badge ${badgeClass}">${badgeLabel}</span>
-      <span class="chevron" id="chev-${idx}">▼</span>
-    </div>
-    <div class="row-body" id="body-${idx}" style="display:none">
-      <table><tbody>
-        <tr><td>concepto_venta</td><td>POSGCUR-CO</td></tr>
-        <tr><td>cliente_apellido</td><td>${item.cliente_apellido || '—'}</td></tr>
-        <tr><td>cliente_nombre</td><td>${item.cliente_nombre || '—'}</td></tr>
-        <tr><td>cliente_dni</td><td>${item.cliente_dni || '—'}</td></tr>
-        <tr><td>cliente_email</td><td>${item.cliente_email || '—'}</td></tr>
-        <tr><td>forma_pago</td><td>total</td></tr>
-        <tr><td>leyenda</td><td>${item.leyenda || '—'}</td></tr>
-        <tr><td>importe_cobrado</td><td>${item.importe_cobrado || '—'}</td></tr>
-        <tr><td>medio_pago</td><td>13</td></tr>
-        <tr><td>condicion_fiscal</td><td>5</td></tr>
-        <tr><td>fecha_pago</td><td>${item.fecha_pago || '—'}</td></tr>
-        <tr><td>id_transaccion</td><td>${item.id_transaccion || '—'}</td></tr>
-        ${item.error ? `<tr><td class="error-detail">Error</td><td class="error-detail">${item.error}</td></tr>` : ''}
-      </tbody></table>
-    </div>`;
-
-  if (existing) { existing.innerHTML = html; }
-  else {
-    const div = document.createElement('div');
-    div.className = 'row-item'; div.id = 'row-' + idx;
-    div.innerHTML = html; list.appendChild(div);
-  }
-}
-
-function toggleRow(idx) {
-  const body = document.getElementById('body-' + idx);
-  const chev = document.getElementById('chev-' + idx);
-  if (body.style.display === 'none') { body.style.display = 'block'; chev.textContent = '▲'; }
-  else { body.style.display = 'none'; chev.textContent = '▼'; }
-}
-
-async function fetchSheet() {
-  const btn = document.getElementById('btnLoad');
-  const scriptUrl = document.getElementById('scriptUrl').value.trim();
-  btn.disabled = true; btn.textContent = 'Cargando...';
-  guardarKey();
-  addLog('config', 'Conectando con la planilla...');
-  try {
-    const sheetId = new URLSearchParams(window.location.search).get('sheetId') || '';
-    const sheetUrl = sheetId
-      ? `${scriptUrl}?action=getSheet&sheetId=${encodeURIComponent(sheetId)}`
-      : `${scriptUrl}?action=getSheet`;
-    const res = await fetch(sheetUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.error) throw new Error('Error del servidor: ' + data.error);
-    // Aceptar tanto array directo como {sheetName, values}
-    const sheetData = Array.isArray(data) ? data : (data.values || null);
-    if (!sheetData) throw new Error('Respuesta inesperada: ' + JSON.stringify(data).slice(0, 100));
-    // Leyenda: primero del script, luego del parámetro URL (pasado por index.html)
-    const urlParams = new URLSearchParams(window.location.search);
-    const sheetName = data.sheetName || urlParams.get('sheetName') || '';
-    leyenda = normalizarLeyenda(sheetName);
-    const [header, ...body] = sheetData;
-    const norm = s => s?.toString().trim().toLowerCase().replace(/\s+/g, ' ');
-
-    // Detectar columnas
-    const dniIdx = header.findIndex(h => norm(h).includes('copia') && norm(h).includes('documento'));
-    const compIdx = header.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('transferencia') && !norm(h).includes('externo'));
-    const compExtIdx = header.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('externo'));
-    const emailIdx = header.findIndex(h => norm(h).includes('email') || norm(h).includes('correo'));
-    const apIdx = header.findIndex(h => norm(h).includes('apellido'));
-    const nomIdx = header.findIndex(h => norm(h).includes('nombre') && !norm(h).includes('apellido'));
-
-    addLog('config', 'sheetName recibido: ' + sheetName);
-    addLog('config', 'leyenda calculada: ' + leyenda);
-    addLog('config', `${body.length} filas encontradas.`);
-    addLog('config', `Col DNI: ${dniIdx} | Col comprobante: ${compIdx} | Col comprobante ext: ${compExtIdx}`);
-
-    results = body
-      .filter(r => r && r.length > 0)
-      .map((r, i) => {
-        const dniLink = dniIdx >= 0 ? (r[dniIdx] || '') : '';
-        const linkInterno = compIdx >= 0 ? (r[compIdx] || '') : '';
-        const linkExterno = compExtIdx >= 0 ? (r[compExtIdx] || '') : '';
-        const comprobanteLink = linkInterno.toString().startsWith('http') ? linkInterno
-          : linkExterno.toString().startsWith('http') ? linkExterno : '';
-        const tieneDni = dniLink.toString().startsWith('http');
-        const tieneComp = comprobanteLink.toString().startsWith('http');
-        return {
-          idx: i,
-          dniLink: tieneDni ? dniLink : '',
-          comprobanteLink: tieneComp ? comprobanteLink : '',
-          nombre_formulario: `${apIdx >= 0 ? r[apIdx] || '' : ''} ${nomIdx >= 0 ? r[nomIdx] || '' : ''}`.trim(),
-          cliente_email: emailIdx >= 0 ? (r[emailIdx] || '') : '',
-          leyenda: leyenda,
-          // campos a extraer
-          cliente_apellido: '', cliente_nombre: '', cliente_dni: '',
-          importe_cobrado: '', fecha_pago: '', id_transaccion: '',
-          // campos vacíos del formato
-          cliente_calle: '', cliente_numero: '', cliente_piso: '', cliente_depto: '',
-          cliente_cp: '', cliente_cp_desc: '', cliente_tipo_doc: 'DNI',
-          pagador_nombres: '', pagador_apellido: '', pagador_razon_social: '',
-          pagador_numero_doc: '', pagador_tipo_doc: '', pagador_domicilio: '',
-          status: (tieneDni || tieneComp) ? 'pending' : 'sin-archivo',
-          error: ''
-        };
-      });
-
-    const procesables = results.filter(r => r.status === 'pending').length;
-    addLog('config', `${procesables} inscripciones con archivos para procesar.`);
-
-    document.getElementById('step-config').style.display = 'none';
-    document.getElementById('step-preview').style.display = 'block';
-    document.getElementById('preview-count').textContent = `${results.length} inscripciones (${procesables} con archivos)`;
-    const list = document.getElementById('list-preview');
-    list.innerHTML = '';
-    results.forEach((r, i) => renderRow(r, i, 'list-preview'));
-  } catch(e) {
-    addLog('config', 'Error: ' + e.message);
-    btn.disabled = false; btn.textContent = 'Cargar planilla →';
-  }
-}
-
-async function getFileAsBase64(scriptUrl, fileLink) {
+async function getBase64(fileLink) {
   const fileId = extractFileId(fileLink);
   if (!fileId) throw new Error('No se pudo extraer el ID del archivo.');
-  const proxyRes = await fetch(`${scriptUrl}?action=getFile&fileId=${encodeURIComponent(fileId)}`);
-  if (!proxyRes.ok) throw new Error(`Error proxy: ${proxyRes.status}`);
+  const proxyRes = await fetch(SCRIPT_URL + '?action=getFile&fileId=' + encodeURIComponent(fileId));
+  if (!proxyRes.ok) throw new Error('Error proxy: ' + proxyRes.status);
   const proxyData = await proxyRes.json();
   if (proxyData.error) throw new Error(proxyData.error);
-  if (!proxyData.base64) throw new Error('No se recibió archivo.');
+  if (!proxyData.base64) throw new Error('No se recibio archivo.');
   return proxyData;
 }
 
-async function callGemini(apiKey, base64, mimeType, prompt) {
+async function callGemini(base64, mimeType, prompt) {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
-        contents: [{ parts: [
-          { inline_data: { mime_type: mimeType || 'image/jpeg', data: base64 } },
-          { text: prompt }
+        contents: [{parts: [
+          {inline_data: {mime_type: mimeType || 'image/jpeg', data: base64}},
+          {text: prompt}
         ]}],
-        generationConfig: { temperature: 0 }
+        generationConfig: {temperature: 0}
       })
     }
   );
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  try { return JSON.parse(text.trim()); }
-  catch { return JSON.parse(text.replace(/```json|```/g, '').trim()); }
+  try   { return JSON.parse(text.trim()); }
+  catch { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
 }
 
-async function processRow(index) {
-  const scriptUrl = document.getElementById('scriptUrl').value.trim();
-  const apiKey = document.getElementById('apiKey').value.trim();
+/* ── Cargar cursos ──────────────────────────────────────── */
 
-  if (results[index].status === 'sin-archivo') {
-    renderRow(results[index], index, 'list-running');
-    doneCount++; updateProgress(); return;
-  }
-
-  results[index].status = 'processing';
-  renderRow(results[index], index, 'list-running');
-
-  const errors = [];
-
-  // 1. Extraer datos del DNI
-  if (results[index].dniLink) {
-    try {
-      const { base64, mimeType } = await getFileAsBase64(scriptUrl, results[index].dniLink);
-      const parsed = await callGemini(apiKey, base64, mimeType,
-        `Esta es una imagen de un documento de identidad argentino (DNI).
-Extrae exactamente los siguientes datos y responde SOLO en formato JSON, sin texto adicional, sin bloques de código:
-{"apellido": "...", "nombre": "...", "dni": "..."}
-El campo "dni" debe contener solo los dígitos del número de documento, sin puntos ni espacios.
-Si no puedes leer algún campo, usa null.`
-      );
-      results[index].cliente_apellido = parsed.apellido || '';
-      results[index].cliente_nombre = parsed.nombre || '';
-      results[index].cliente_dni = parsed.dni || '';
-    } catch(e) {
-      errors.push('DNI: ' + e.message);
-    }
-  }
-
-  // 2. Extraer datos del comprobante
-  if (results[index].comprobanteLink) {
-    try {
-      const { base64, mimeType } = await getFileAsBase64(scriptUrl, results[index].comprobanteLink);
-      const parsed = await callGemini(apiKey, base64, mimeType,
-        `Este es un comprobante de transferencia bancaria argentina.
-Extrae exactamente los siguientes datos y responde SOLO en formato JSON, sin texto adicional, sin bloques de código:
-{"monto": "...", "fecha": "...", "cvu": "...", "id_transaccion": "..."}
-Reglas:
-- monto: solo números y punto decimal. Ejemplo: $1.500,50 → 1500.50
-- fecha: formato DD-MM-AAAA (usar guiones, no barras)
-- cvu: solo dígitos, sin espacios ni guiones
-- id_transaccion: número o código de operación/comprobante
-Si no podés leer algún campo, usá null.`
-      );
-      results[index].importe_cobrado = parsed.monto || '';
-      results[index].fecha_pago = parsed.fecha || '';
-      results[index].id_transaccion = parsed.id_transaccion || '';
-    } catch(e) {
-      errors.push('Comprobante: ' + e.message);
-    }
-  }
-
-  if (errors.length > 0) {
-    results[index].error = errors.join(' | ');
-    results[index].status = errors.length === 2 ? 'error' : 'ok'; // ok parcial si solo falló uno
-  } else {
-    results[index].status = 'ok';
-  }
-
-  doneCount++;
-  renderRow(results[index], index, 'list-running');
-  updateProgress();
-}
-
-function updateProgress() {
-  const total = results.length;
-  const done = doneCount + errorCount;
-  const pct = Math.round((done / total) * 100);
-  document.getElementById('prog-text').textContent = `${done} de ${total} procesados`;
-  document.getElementById('prog-pct').textContent = `${pct}%`;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  if (errorCount > 0) {
-    const el = document.getElementById('error-count');
-    el.style.display = 'block';
-    el.textContent = `${errorCount} con error`;
+async function cargarCursos() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=listSheets&withData=1&folderId=' + FOLDER_ID);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderCursos(data.sheets || []);
+  } catch(e) {
+    document.getElementById('al-cursos').innerHTML =
+      '<div class="al al-e">\u26a0 Error al cargar los cursos: ' + e.message + '</div>';
+    document.getElementById('curso-list').innerHTML = '';
   }
 }
 
-async function runOne() {
-  const filaInput = document.getElementById('filaElegida').value;
-  const idx = parseInt(filaInput) - 1;
-  if (isNaN(idx) || idx < 0 || idx >= results.length) {
-    alert('Ingresá un número entre 1 y ' + results.length + '.'); return;
-  }
-  doneCount = 0; errorCount = 0;
-  document.getElementById('step-preview').style.display = 'none';
-  document.getElementById('step-running').style.display = 'block';
-  document.getElementById('list-running').innerHTML = '';
-  renderRow(results[idx], idx, 'list-running');
-  document.getElementById('prog-text').textContent = '0 de 1 procesados';
-  document.getElementById('prog-pct').textContent = '0%';
-  document.getElementById('prog-fill').style.width = '0%';
-  await processRow(idx);
-  document.getElementById('running-title').textContent = 'Procesamiento completo';
-  document.getElementById('btnExportWrap').style.display = 'flex';
-  addLog('running', 'Procesamiento completado.');
-}
-
-async function runAll() {
-  doneCount = 0; errorCount = 0;
-  document.getElementById('step-preview').style.display = 'none';
-  document.getElementById('step-running').style.display = 'block';
-  const list = document.getElementById('list-running');
+function renderCursos(sheets) {
+  const list = document.getElementById('curso-list');
+  if (!sheets.length) { list.innerHTML = '<div class="empty">No se encontraron cursos.</div>'; return; }
   list.innerHTML = '';
-  results.forEach((r, i) => renderRow(r, i, 'list-running'));
-  updateProgress();
-  for (let i = 0; i < results.length; i++) {
-    await processRow(i);
-    await new Promise(r => setTimeout(r, 600));
+  sheets.forEach(function(s) {
+    const nombre = normNombre(s.name);
+    const div    = document.createElement('div');
+    div.className = 'curso-item';
+    const badge = s.formAbierto === true
+      ? '<span class="badge-open">\u25cf Abierta</span>'
+      : '<span class="badge-closed">\u25cf Cerrada</span>';
+    div.dataset.id         = s.id;
+    div.dataset.nombre     = nombre;
+    div.dataset.inscriptos = s.inscriptos || 0;
+    div.innerHTML =
+      '<div class="curso-header">' +
+        '<div class="curso-name">' + nombre + '</div>' +
+        '<div class="curso-badges">' +
+          '<span class="curso-count">' + (s.inscriptos || 0) + ' inscriptos</span>' +
+          badge +
+          '<button class="btn" style="padding:6px 14px;font-size:12px" onclick="iniciarProcesoPorDiv(this)">Procesar \u2192</button>' +
+        '</div>' +
+      '</div>';
+    list.appendChild(div);
+  });
+}
+
+function iniciarProcesoPorDiv(btn) {
+  const item = btn.closest('.curso-item');
+  iniciarProceso(item.dataset.id, item.dataset.nombre, parseInt(item.dataset.inscriptos));
+}
+
+function volverCursos() {
+  document.getElementById('step-proceso').style.display = 'none';
+  document.getElementById('step-cursos').style.display  = 'block';
+}
+
+/* ── Inicio del procesamiento ───────────────────────────── */
+
+async function iniciarProceso(sheetId, nombre, total) {
+  apiKey = getApiKey();
+  if (!apiKey) {
+    document.getElementById('al-cursos').innerHTML =
+      '<div class="al al-w">\u26a0 No se encontr\u00f3 la API Key. Configur\u00e1la desde la p\u00e1gina principal.</div>';
+    return;
   }
-  document.getElementById('running-title').textContent = 'Procesamiento completo';
-  document.getElementById('btnExportWrap').style.display = 'flex';
-  addLog('running', 'Procesamiento completado.');
+
+  cursoActual = { sheetId: sheetId, nombre: nombre };
+  doneCount = 0; errorCount = 0; results = [];
+
+  document.getElementById('step-cursos').style.display  = 'none';
+  document.getElementById('step-proceso').style.display = 'block';
+  document.getElementById('proc-curso-nombre').textContent = nombre;
+  document.getElementById('bc-nombre').textContent = nombre;
+  document.getElementById('proc-title').textContent = 'Procesando inscripciones...';
+  document.getElementById('tbl-wrap').style.display  = 'none';
+  document.getElementById('proc-log').textContent   = '';
+  document.getElementById('proc-log').style.display  = 'none';
+  document.getElementById('proc-errs').style.display = 'none';
+  updateProg(0, total || 1);
+
+  try {
+    addLog('Cargando planilla...');
+    const r   = await fetch(SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(sheetId));
+    const d   = await r.json();
+    const raw = Array.isArray(d) ? d : (d.values || []);
+    if (raw.length < 2) throw new Error('La planilla no tiene datos.');
+
+    const hdr  = raw[0];
+    const body = raw.slice(1);
+    const norm = function(s) { return s ? s.toString().trim().toLowerCase().replace(/\s+/g,' ') : ''; };
+
+    const compIdx    = hdr.findIndex(function(h){ return norm(h).includes('comprobante') && norm(h).includes('transferencia') && !norm(h).includes('externo'); });
+    const compExtIdx = hdr.findIndex(function(h){ return norm(h).includes('comprobante') && norm(h).includes('externo'); });
+    const dniIdx     = hdr.findIndex(function(h){ return norm(h).includes('copia') && norm(h).includes('documento'); });
+    const apIdx      = hdr.findIndex(function(h){ return norm(h).includes('apellido'); });
+    const nomIdx     = hdr.findIndex(function(h){ return norm(h).includes('nombre') && !norm(h).includes('apellido'); });
+    const emailIdx   = hdr.findIndex(function(h){ return norm(h).includes('email') || norm(h).includes('correo'); });
+    const tipoIdx    = hdr.findIndex(function(h) {
+      const hn = h ? h.toString().trim().toUpperCase() : '';
+      return hn === 'TIPO DE INSCRIPCI\u00d3N' || hn === 'TIPO DE INSCRIPCION' ||
+             (hn.includes('TIPO') && hn.includes('INSCRIPCI'));
+    });
+
+    addLog(body.length + ' inscriptos encontrados.');
+    addLog('Col comprobante: ' + compIdx + ' | externo: ' + compExtIdx + ' | DNI: ' + dniIdx + ' | tipo: ' + tipoIdx);
+
+    results = body.filter(function(r){ return r && r.length > 0; }).map(function(r, i) {
+      const lInt = compIdx    >= 0 ? (r[compIdx]    || '') : '';
+      const lExt = compExtIdx >= 0 ? (r[compExtIdx] || '') : '';
+      const comprobanteLink = lInt.toString().startsWith('http') ? lInt
+                            : lExt.toString().startsWith('http') ? lExt : '';
+      const dniLink = dniIdx >= 0 ? (r[dniIdx] || '') : '';
+      const nombre = ((apIdx >= 0 ? r[apIdx]||'' : '') + ' ' + (nomIdx >= 0 ? r[nomIdx]||'' : '')).trim();
+      return {
+        idx:             i,
+        nombre:          nombre,
+        email:           emailIdx >= 0 ? (r[emailIdx]||'') : '',
+        tipo:            tipoIdx  >= 0 ? (r[tipoIdx] ? r[tipoIdx].toString().trim() : '') : '',
+        comprobanteLink: comprobanteLink,
+        dniLink:         dniLink.toString().startsWith('http') ? dniLink : '',
+        apellido_dni:    '',
+        nombre_dni:      '',
+        dni:             '',
+        importe:         '',
+        fecha:           '',
+        id_transaccion:  '',
+        status:          comprobanteLink ? 'pending' : 'sin-comprobante',
+        nulos:           [],
+        error:           ''
+      };
+    });
+
+    updateProg(0, results.length);
+
+    for (let i = 0; i < results.length; i++) {
+      await procesarFila(i);
+      updateProg(doneCount + errorCount, results.length);
+      renderTabla();
+      await new Promise(function(res){ setTimeout(res, 400); });
+    }
+
+    document.getElementById('proc-title').textContent = 'Procesamiento completo';
+    document.getElementById('tbl-wrap').style.display = 'block';
+    renderTabla();
+    addLog('\u2713 Procesamiento finalizado.');
+
+  } catch(e) {
+    document.getElementById('proc-title').textContent = 'Error en el procesamiento';
+    addLog('Error: ' + e.message);
+  }
 }
 
-function exportCSV() {
-  const cols = [
-    'concepto_venta', 'cliente_apellido', 'cliente_nombre', 'cliente_dni',
-    'cliente_calle', 'cliente_numero', 'cliente_piso', 'cliente_depto',
-    'cliente_cp', 'cliente_cp_desc', 'cliente_email', 'forma_pago',
-    'leyenda', 'importe_cobrado', 'medio_pago', 'cliente_tipo_doc',
-    'condicion_fiscal', 'fecha_pago', 'id_transaccion',
-    'pagador_nombres', 'pagador_apellido', 'pagador_razon_social',
-    'pagador_numero_doc', 'pagador_tipo_doc', 'pagador_domicilio'
-  ];
+/* ── Procesar una fila ──────────────────────────────────── */
 
-  const rows = results.filter(r => r.importe_cobrado && r.importe_cobrado.toString().trim() !== '').map(r => ({
-    concepto_venta: 'POSGCUR-CO',
-    cliente_apellido: r.cliente_apellido,
-    cliente_nombre: r.cliente_nombre,
-    cliente_dni: r.cliente_dni,
-    cliente_calle: r.cliente_calle,
-    cliente_numero: r.cliente_numero,
-    cliente_piso: r.cliente_piso,
-    cliente_depto: r.cliente_depto,
-    cliente_cp: r.cliente_cp,
-    cliente_cp_desc: r.cliente_cp_desc,
-    cliente_email: r.cliente_email,
-    forma_pago: 'total',
-    leyenda: r.leyenda,
-    importe_cobrado: r.importe_cobrado,
-    medio_pago: '13',
-    cliente_tipo_doc: r.cliente_tipo_doc,
-    condicion_fiscal: '5',
-    fecha_pago: r.fecha_pago,
-    id_transaccion: r.id_transaccion,
-    pagador_nombres: r.pagador_nombres,
-    pagador_apellido: r.pagador_apellido,
-    pagador_razon_social: r.pagador_razon_social,
-    pagador_numero_doc: r.pagador_numero_doc,
-    pagador_tipo_doc: r.pagador_tipo_doc,
-    pagador_domicilio: r.pagador_domicilio,
-  }));
+async function procesarFila(i) {
+  const r = results[i];
 
-  const csv = [cols, ...rows.map(r => cols.map(c => r[c]))]
-    .map(r => r.map(c => String(c || '').replace(/,/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '')).join(','))
-    .join('\n');
+  if (!r.comprobanteLink) {
+    r.status = 'sin-comprobante';
+    doneCount++;
+    addLog('\u2014 ' + (r.nombre || '(sin nombre)') + ': sin comprobante');
+    return;
+  }
 
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Facturar-${leyenda || 'planilla'}.csv`;
-  a.click();
+  r.status = 'processing';
+  const errores = [];
+  const nulos   = [];
+
+  /* 1. Comprobante de pago → monto, fecha, id_transaccion */
+  try {
+    const file = await getBase64(r.comprobanteLink);
+    const PROMPT_COMP = 'Comprobante de transferencia bancaria argentina. Responde SOLO JSON sin texto extra: {"monto":"...","fecha":"...","id_transaccion":"..."} monto: solo numeros y punto decimal (ej: 1500.50). fecha: DD-MM-AAAA. id_transaccion: numero o codigo de operacion/comprobante. null si no podes leer algun campo.';
+    const parsed = await callGemini(file.base64, file.mimeType, PROMPT_COMP);
+    r.importe        = parsed.monto          || '';
+    r.fecha          = parsed.fecha          || '';
+    r.id_transaccion = parsed.id_transaccion || '';
+    if (!r.importe) nulos.push('importe');
+    if (!r.fecha)   nulos.push('fecha');
+  } catch(e) {
+    errores.push('Comprobante: ' + e.message);
+  }
+
+  /* 2. DNI → apellido, nombre, dni */
+  if (r.dniLink) {
+    try {
+      const file = await getBase64(r.dniLink);
+      const PROMPT_DNI = 'Documento de identidad argentino (DNI). Responde SOLO JSON sin texto extra: {"apellido":"...","nombre":"...","dni":"..."} dni: solo digitos sin puntos ni espacios. null si no podes leer algun campo.';
+      const dp = await callGemini(file.base64, file.mimeType, PROMPT_DNI);
+      r.apellido_dni = dp.apellido || '';
+      r.nombre_dni   = dp.nombre   || '';
+      r.dni          = dp.dni      || '';
+    } catch(e) {
+      errores.push('DNI: ' + e.message);
+    }
+  }
+
+  /* Estado final */
+  r.nulos = nulos;
+  if (errores.length > 0) {
+    r.error  = errores.join(' | ');
+    r.status = 'error';
+    errorCount++;
+    const errEl = document.getElementById('proc-errs');
+    errEl.style.display = 'block';
+    errEl.textContent   = errorCount + ' comprobante' + (errorCount > 1 ? 's' : '') + ' con error';
+    addLog('\u2717 ' + r.nombre + ': ' + r.error);
+  } else {
+    r.status = nulos.length > 0 ? 'nulos' : 'ok';
+    doneCount++;
+    const nm = r.apellido_dni ? r.apellido_dni + ', ' + r.nombre_dni : r.nombre;
+    addLog('\u2713 ' + nm + ' \u2014 $' + (r.importe||'?') + ' \u2014 ' + (r.fecha||'sin fecha') + (nulos.length ? ' \u26a0 nulos: ' + nulos.join(', ') : ''));
+  }
 }
+
+/* ── Progreso ───────────────────────────────────────────── */
+
+function updateProg(done, total) {
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('proc-txt').textContent  = done + ' de ' + total + ' procesados';
+  document.getElementById('proc-pct').textContent  = pct + '%';
+  document.getElementById('proc-bar').style.width  = pct + '%';
+}
+
+/* ── Tabla de resultados ────────────────────────────────── */
+
+function renderTabla() {
+  const body = document.getElementById('tbl-body');
+  body.innerHTML = results.map(function(r, i) {
+    const nombreMostrar = r.apellido_dni
+      ? r.apellido_dni + ', ' + r.nombre_dni
+      : (r.nombre || '\u2014');
+    let stBadge;
+    if      (r.status === 'ok')               stBadge = '<span class="st st-ok">\u2713 OK</span>';
+    else if (r.status === 'nulos')            stBadge = '<span class="st st-warn">\u26a0 Nulos: ' + r.nulos.join(', ') + '</span>';
+    else if (r.status === 'error')            stBadge = '<span class="st st-err">\u2717 Error</span>';
+    else if (r.status === 'processing')       stBadge = '<span class="st st-proc">\u23f3 Procesando\u2026</span>';
+    else if (r.status === 'sin-comprobante')  stBadge = '<span class="st st-sc">Sin comprobante</span>';
+    else                                      stBadge = '<span class="st st-pend">\u2014 Pendiente</span>';
+    const errorRow = r.error ? '<div class="td-err" style="margin-top:3px">' + r.error + '</div>' : '';
+    const imp = r.importe ? '$' + Math.round(parseFloat(r.importe)).toLocaleString('es-AR') : '\u2014';
+    return '<tr>' +
+      '<td style="color:var(--on-sv)">' + (i+1) + '</td>' +
+      '<td style="font-weight:500">' + nombreMostrar + '</td>' +
+      '<td style="color:var(--on-sv)">' + (r.email||'\u2014') + '</td>' +
+      '<td>' + (r.tipo||'\u2014') + '</td>' +
+      '<td>' + imp + '</td>' +
+      '<td>' + (r.fecha||'\u2014') + '</td>' +
+      '<td>' + stBadge + errorRow + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const ok   = results.filter(function(r){ return r.status==='ok'; }).length;
+  const warn = results.filter(function(r){ return r.status==='nulos'; }).length;
+  const err  = results.filter(function(r){ return r.status==='error'; }).length;
+  const sc   = results.filter(function(r){ return r.status==='sin-comprobante'; }).length;
+
+  document.getElementById('tbl-count').textContent =
+    results.length + ' inscriptos \u00b7 ' + ok + ' OK';
+  document.getElementById('tbl-errors').textContent =
+    [warn>0 ? warn+' con datos nulos' : '', err>0 ? err+' con error' : '', sc>0 ? sc+' sin comprobante' : '']
+    .filter(Boolean).join(' \u00b7 ');
+  document.getElementById('tbl-title').textContent =
+    'Comprobantes \u2014 ' + cursoActual.nombre;
+}
+
+/* ── Exportar XLS ───────────────────────────────────────── */
 
 function exportXLS() {
-  const cols = [
+  var cols = [
     'concepto_venta','cliente_apellido','cliente_nombre','cliente_dni',
     'cliente_calle','cliente_numero','cliente_piso','cliente_depto',
     'cliente_cp','cliente_cp_desc','cliente_email','forma_pago',
@@ -524,39 +577,92 @@ function exportXLS() {
     'pagador_nombres','pagador_apellido','pagador_razon_social',
     'pagador_numero_doc','pagador_tipo_doc','pagador_domicilio'
   ];
-  const filtered = results.filter(r => r.importe_cobrado && r.importe_cobrado.toString().trim() !== '');
-  const rows = filtered.map(r => ({
-    concepto_venta: 'POSGCUR-CO',
-    cliente_apellido: r.cliente_apellido,
-    cliente_nombre: r.cliente_nombre,
-    cliente_dni: r.cliente_dni,
-    cliente_calle: r.cliente_calle,
-    cliente_numero: r.cliente_numero,
-    cliente_piso: r.cliente_piso,
-    cliente_depto: r.cliente_depto,
-    cliente_cp: r.cliente_cp,
-    cliente_cp_desc: r.cliente_cp_desc,
-    cliente_email: r.cliente_email,
-    forma_pago: 'total',
-    leyenda: r.leyenda,
-    importe_cobrado: r.importe_cobrado,
-    medio_pago: '13',
-    cliente_tipo_doc: 'DNI',
-    condicion_fiscal: '5',
-    fecha_pago: r.fecha_pago,
-    id_transaccion: r.id_transaccion,
-    pagador_nombres: r.pagador_nombres,
-    pagador_apellido: r.pagador_apellido,
-    pagador_razon_social: r.pagador_razon_social,
-    pagador_numero_doc: r.pagador_numero_doc,
-    pagador_tipo_doc: r.pagador_tipo_doc,
-    pagador_domicilio: r.pagador_domicilio,
-  }));
-  const ws = XLSX.utils.json_to_sheet(rows, { header: cols });
-  const wb = XLSX.utils.book_new();
+
+  var leyenda = normLeyenda(cursoActual.nombre);
+
+  /* Solo registros CON importe_cobrado */
+  var incluidos = results.filter(function(r){ return r.importe && r.importe.toString().trim() !== ''; });
+
+  /* Registros excluidos: sin importe, sin comprobante o con error */
+  var excluidos = results.filter(function(r){ return !r.importe || r.importe.toString().trim() === ''; });
+
+  var rows = incluidos.map(function(r) {
+    return {
+      concepto_venta:       'POSGCUR-CO',
+      cliente_apellido:     r.apellido_dni  || '',
+      cliente_nombre:       r.nombre_dni    || '',
+      cliente_dni:          r.dni           || '',
+      cliente_calle:        '',
+      cliente_numero:       '',
+      cliente_piso:         '',
+      cliente_depto:        '',
+      cliente_cp:           '',
+      cliente_cp_desc:      '',
+      cliente_email:        r.email         || '',
+      forma_pago:           'total',
+      leyenda:              leyenda,
+      importe_cobrado:      r.importe ? parseFloat(r.importe) : '',
+      medio_pago:           '13',
+      cliente_tipo_doc:     'DNI',
+      condicion_fiscal:     '5',
+      fecha_pago:           r.fecha         || '',
+      id_transaccion:       r.id_transaccion|| '',
+      pagador_nombres:      '',
+      pagador_apellido:     '',
+      pagador_razon_social: '',
+      pagador_numero_doc:   '',
+      pagador_tipo_doc:     '',
+      pagador_domicilio:    ''
+    };
+  });
+
+  var wb = XLSX.utils.book_new();
+
+  /* Hoja principal: Ventas */
+  var ws = XLSX.utils.json_to_sheet(rows, {header: cols});
+  ws['!cols'] = [
+    {wch:14},{wch:22},{wch:22},{wch:14},
+    {wch:20},{wch:10},{wch:8},{wch:8},
+    {wch:10},{wch:16},{wch:32},{wch:10},
+    {wch:36},{wch:14},{wch:10},{wch:14},
+    {wch:14},{wch:14},{wch:20},
+    {wch:20},{wch:20},{wch:24},
+    {wch:16},{wch:14},{wch:24}
+  ];
   XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
-  XLSX.writeFile(wb, `Facturar-${leyenda || 'planilla'}.xls`, { bookType: 'xls' });
+
+  /* Hoja secundaria: No incluidos (con apellido, nombre, dni informados) */
+  if (excluidos.length > 0) {
+    var exCols = ['cliente_apellido','cliente_nombre','cliente_dni','cliente_email','motivo'];
+    var exRows = excluidos.map(function(r) {
+      var ap = r.apellido_dni || '';
+      var nm = r.nombre_dni   || '';
+      /* Fallback: intentar separar del campo nombre si no hay DNI procesado */
+      if (!ap && r.nombre) {
+        var parts = r.nombre.trim().split(/\s+/);
+        ap = parts[0] || '';
+        nm = parts.slice(1).join(' ') || '';
+      }
+      var motivo = r.status === 'sin-comprobante' ? 'Sin comprobante' :
+                   r.status === 'error'            ? 'Error: ' + r.error :
+                   'Importe nulo';
+      return {
+        cliente_apellido: ap,
+        cliente_nombre:   nm,
+        cliente_dni:      r.dni   || '',
+        cliente_email:    r.email || '',
+        motivo:           motivo
+      };
+    });
+    var wsEx = XLSX.utils.json_to_sheet(exRows, {header: exCols});
+    wsEx['!cols'] = [{wch:22},{wch:22},{wch:14},{wch:32},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, wsEx, 'No incluidos');
+  }
+
+  XLSX.writeFile(wb, 'Ventas-' + (leyenda||'planilla') + '.xls', {bookType:'xls'});
 }
+
+window.onload = cargarCursos;
 </script>
 </body>
 </html>
