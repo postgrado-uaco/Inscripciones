@@ -618,7 +618,7 @@ function exportXLS() {
 
   var wb = XLSX.utils.book_new();
 
-  /* Hoja principal: Ventas */
+  /* Única hoja: Sheet1 — solo registros con importe cobrado */
   var ws = XLSX.utils.json_to_sheet(rows, {header: cols});
   ws['!cols'] = [
     {wch:14},{wch:22},{wch:22},{wch:14},
@@ -629,35 +629,7 @@ function exportXLS() {
     {wch:20},{wch:20},{wch:24},
     {wch:16},{wch:14},{wch:24}
   ];
-  XLSX.utils.book_append_sheet(wb, ws, 'Ventas');
-
-  /* Hoja secundaria: No incluidos (con apellido, nombre, dni informados) */
-  if (excluidos.length > 0) {
-    var exCols = ['cliente_apellido','cliente_nombre','cliente_dni','cliente_email','motivo'];
-    var exRows = excluidos.map(function(r) {
-      var ap = r.apellido_dni || '';
-      var nm = r.nombre_dni   || '';
-      /* Fallback: intentar separar del campo nombre si no hay DNI procesado */
-      if (!ap && r.nombre) {
-        var parts = r.nombre.trim().split(/\s+/);
-        ap = parts[0] || '';
-        nm = parts.slice(1).join(' ') || '';
-      }
-      var motivo = r.status === 'sin-comprobante' ? 'Sin comprobante' :
-                   r.status === 'error'            ? 'Error: ' + r.error :
-                   'Importe nulo';
-      return {
-        cliente_apellido: ap,
-        cliente_nombre:   nm,
-        cliente_dni:      r.dni   || '',
-        cliente_email:    r.email || '',
-        motivo:           motivo
-      };
-    });
-    var wsEx = XLSX.utils.json_to_sheet(exRows, {header: exCols});
-    wsEx['!cols'] = [{wch:22},{wch:22},{wch:14},{wch:32},{wch:40}];
-    XLSX.utils.book_append_sheet(wb, wsEx, 'No incluidos');
-  }
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
   XLSX.writeFile(wb, 'Ventas-' + (leyenda||'planilla') + '.xls', {bookType:'xls'});
 }
