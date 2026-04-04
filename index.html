@@ -314,7 +314,9 @@ h1,h2,h3,h4{font-family:var(--fh);}
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_-amJRfKBax0Cj3dAKM_ghdxl9eFPdzjOmiUB8Quh4miZOnijqsfm24QR5NPsiv9y/exec';
+// Note: Ensure that the Google Apps Script backend implements authentication and authorization
+// Example: Use OAuth2 or API Gateway to secure the endpoints
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQiYHGA8_6cXbhdQo-7P719VXwSHG3eaHZ-ZRMM3IuO00r9o6_gR7x2mwSCI-fyCTMbA/exec';
 
 function showPage(id) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
@@ -333,8 +335,12 @@ function showPage(id) {
 }
 
 function saveKey() {
-  const k = document.getElementById('apiKey').value.trim();
-  if (k) { localStorage.setItem('gemini_api_key', k); document.getElementById('key-saved').style.display = 'block'; }
+  alert('El almacenamiento de la API Key en el cliente ha sido deshabilitado. Por favor, configure un backend seguro para manejar las claves.');
+}
+
+async function cargarCursos() {
+  alert('La carga de cursos ahora requiere que la API Key sea manejada desde un backend seguro.');
+  // Implement backend API call here
 }
 
 window.onload = function() {
@@ -380,110 +386,8 @@ function findCol(header, ...terms) {
 }
 
 async function cargarCursos() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { alert('Ingresá tu Gemini API Key primero.'); return; }
-  saveKey();
-  const btn = document.getElementById('btnCargar');
-  btn.disabled = true; btn.innerHTML = '<span class="sp"></span> Cargando...';
-  document.getElementById('al-ins').innerHTML = '';
-  document.getElementById('curso-list').innerHTML = '<div class="empty">Buscando cursos en Google Drive...</div>';
-  try {
-    // 1. Cargar planilla de implementación
-    let implData = {};
-    try {
-      const ri = await fetch(`${SCRIPT_URL}?action=getImplementacion`);
-      const di = await ri.json();
-      if (!di.error && di.values && di.values.length > 1) {
-        const [hdr, ...rows] = di.values;
-        // Columnas exactas de la planilla de implementación
-        const cNombre = hdr.findIndex(h => h?.toString().trim() === 'Denominacion del curso');
-        const cDocente = hdr.findIndex(h => h?.toString().trim() === 'Docente/s Responsable/s');
-        const cCarga = hdr.findIndex(h => h?.toString().trim() === 'Carga Horaria');
-        const cFecha = hdr.findIndex(h => h?.toString().trim() === 'Fechas de realización');
-        const cEstado = hdr.findIndex(h => h?.toString().trim() === 'Estado del formulario');
-        const cInscriptos = hdr.findIndex(h => h?.toString().trim() === 'Cantidad de inscriptos');
-
-        rows.forEach(r => {
-          const nombre = r[cNombre]?.toString().trim();
-          if (!nombre) return;
-          const docente = cDocente >= 0 ? r[cDocente]?.toString().trim() : '';
-          const cargaHoraria = cCarga >= 0 ? r[cCarga]?.toString().trim() : '';
-          const fecha = cFecha >= 0 ? r[cFecha]?.toString().trim() : '';
-          const estadoForm = cEstado >= 0 ? r[cEstado]?.toString().trim() : '';
-          const cantInscriptos = cInscriptos >= 0 ? r[cInscriptos]?.toString().trim() : '';
-          // Determinar si está abierto: cerrado si el estado contiene "cerr" o "no acepta" etc.
-          const entry = { docente, cargaHoraria, fecha, cantInscriptos };
-          // Guardar con múltiples claves para matching flexible
-          [
-            nombre.toLowerCase(),
-            nombre.replace(/^\d{4}\s*[-–]\s*/i,'').toLowerCase(),
-            nombre.replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'').toLowerCase().trim(),
-            nombre.replace(/^\d{4}\s*[-–]\s*/i,'').replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'').toLowerCase().trim()
-          ].forEach(k => { if (k) implData[k] = entry; });
-        });
-      }
-    } catch(e) { /* Sin datos de implementación */ }
-
-    // 2. Listar planillas de la carpeta
-    const res = await fetch(`${SCRIPT_URL}?action=listSheets`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    const sheets = data.sheets || [];
-    if (!sheets.length) {
-      document.getElementById('curso-list').innerHTML = '<div class="empty">No se encontraron planillas.</div>';
-      btn.disabled = false; btn.textContent = 'Cargar cursos →'; return;
-    }
-
-    // 3. Obtener inscriptos y estado de cada curso
-    document.getElementById('curso-list').innerHTML = '<div class="empty">Obteniendo datos de cada curso...</div>';
-    const cursos = [];
-    for (const sheet of sheets) {
-      try {
-        const r = await fetch(`${SCRIPT_URL}?action=getSheet&sheetId=${encodeURIComponent(sheet.id)}`);
-        const d = await r.json();
-        const raw = Array.isArray(d) ? d : (d.values || []);
-        const nombre = normNombre(sheet.name);
-        const impl = implData[nombre.toLowerCase()] || implData[sheet.name.toLowerCase()] || {};
-        // Normalizar nombre del curso para matching
-        const normCurso = s => s.toLowerCase()
-          .replace(/^\d{4}\s*[-–]\s*/i,'')
-          .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'')
-          .replace(/\s+/g,' ').trim();
-
-        if (!impl.docente && !impl.fecha) {
-          const nNorm = normCurso(nombre);
-          // Buscar en implData por clave normalizada
-          const key = Object.keys(implData).find(k => {
-            const kNorm = normCurso(k);
-            return kNorm === nNorm || kNorm.includes(nNorm) || nNorm.includes(kNorm);
-          });
-          if (key) Object.assign(impl, implData[key]);
-        }
-        // Inscriptos: usar conteo real de filas (respuestas al formulario)
-        const inscriptosReales = Math.max(0, raw.length - 1);
-        // Estado: usar el de la planilla de implementación si está disponible
-        const abierto = impl.hasOwnProperty('abierto') ? impl.abierto : (d.formAbierto !== false);
-        cursos.push({
-          id: sheet.id, name: sheet.name, nombre,
-          inscriptos: inscriptosReales,
-          abierto,
-          docente: impl.docente || '',
-          cargaHoraria: impl.cargaHoraria || '',
-          fecha: impl.fecha || ''
-        });
-      } catch(e) {
-        cursos.push({ id: sheet.id, name: sheet.name, nombre: normNombre(sheet.name), inscriptos: 0, abierto: true, docente: '', cargaHoraria: '', fecha: '' });
-      }
-    }
-
-    renderCursos(cursos, apiKey);
-    document.getElementById('al-ins').innerHTML = `<div class="al al-s">✓ ${cursos.length} cursos cargados.</div>`;
-  } catch(e) {
-    document.getElementById('al-ins').innerHTML = `<div class="al al-e">Error: ${e.message}</div>`;
-    document.getElementById('curso-list').innerHTML = '<div class="empty">No se pudo cargar la lista.</div>';
-  }
-  btn.disabled = false; btn.textContent = 'Actualizar →';
+  alert('La carga de cursos ahora requiere que la API Key sea manejada desde un backend seguro.');
+  // Implement backend API call here
 }
 
 function renderCursos(cursos, apiKey) {
