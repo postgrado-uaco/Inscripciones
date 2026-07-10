@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herramientas — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;
+  --on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shm:0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3,h4{font-family:var(--fh);}
+
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+
+.app-body{display:flex;flex:1;overflow:hidden;}
+
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+.main{flex:1;overflow-y:auto;padding:32px 28px;max-width:800px;}
+.ph{margin-bottom:28px;}
+.ph h1{font-size:28px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);line-height:1.6;}
+
+.h-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.h-grid{grid-template-columns:1fr;}}
+.h-card{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:20px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--sh);text-decoration:none;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s;}
+.h-card:hover{border-color:var(--primary-c);transform:translateY(-2px);box-shadow:var(--shm);}
+.h-card-disabled{opacity:.5;cursor:not-allowed;pointer-events:none;}
+.h-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--on-pc);}
+.h-ico svg{width:18px;height:18px;fill:none;stroke:var(--primary);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.h-name{font-size:14px;font-weight:700;color:var(--on-s);margin-bottom:4px;}
+.h-desc{font-size:12.5px;color:var(--on-sv);line-height:1.5;}
+.h-tag{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--surf-hi);color:var(--on-sv);margin-top:6px;}
+</style>
+</head>
+<body>
+
+<header class="hdr" role="banner">
+  <div>
+    <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
+    <div class="hdr-sub">UNPA-UACO</div>
+  </div>
+  <div class="av" aria-label="Usuario: Administrador" title="Administrador">AD</div>
+</header>
+
+<div class="app-body">
+  <nav class="sb" aria-label="Navegación principal">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Inicio
+    </a>
+    <a class="sb-item on" href="herramientas.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
+    </a>
+    <a class="sb-item sb-disabled" href="#" aria-disabled="true">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
+    </a>
+  </nav>
+
+  <main class="main" role="main">
+    <div class="ph">
+      <h1>Herramientas</h1>
+      <p>Accedé a las herramientas de gestión académica y procesamiento de documentación.</p>
+    </div>
+
+    <div class="h-grid">
+      <a class="h-card" href="controlar_comprobantes.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M9 14l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+        <div>
+          <div class="h-name">Controlar pagos</div>
+          <div class="h-desc">Verificá los comprobantes de transferencia de cada inscripto.</div>
+        </div>
+      </a>
+      <a class="h-card" href="controlar_titulos.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg></div>
+        <div>
+          <div class="h-name">Controlar títulos</div>
+          <div class="h-desc">Verificá los títulos de grado adjuntos por los inscriptos.</div>
+        </div>
+      </a>
+      <a class="h-card" href="extractor_planilla_ventas.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg></div>
+        <div>
+          <div class="h-name">Generar Pagos</div>
+          <div class="h-desc">Generá la planilla de ventas con los datos de facturación.</div>
+        </div>
+      </a>
+      <a class="h-card" href="formulario_evaluacion.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8M16 17H8M10 9H8"/></svg></div>
+        <div>
+          <div class="h-name">Generar Acta</div>
+          <div class="h-desc">Generá el acta de cierre del curso con los inscriptos.</div>
+        </div>
+      </a>
+      <a class="h-card h-card-disabled" href="#" aria-disabled="true" tabindex="-1">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></div>
+        <div>
+          <div class="h-name">Unir documentación</div>
+          <div class="h-desc">Combiná todos los documentos de un inscripto en un único PDF.</div>
+          <span class="h-tag">Próximamente</span>
+        </div>
+      </a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
