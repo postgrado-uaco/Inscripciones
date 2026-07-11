@@ -234,9 +234,9 @@ tr:hover td{background:var(--surf-lo);}
 
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcrHMjhU14gyCz46QNTmfXcktckjfhu9TBRJLgkOyacbtCtEYp-cVcgD_jyb1tR7p0KQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
 const FOLDER_ID  = '1AQnG88tlwQGkGYeTz3qJ_cbEEa2sV2NV';
-const NEW_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcrHMjhU14gyCz46QNTmfXcktckjfhu9TBRJLgkOyacbtCtEYp-cVcgD_jyb1tR7p0KQ/exec';
+const NEW_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
 
 // Columnas que se escriben en la planilla para registrar procesamiento
 const COL_APELLIDO_DNI = 'Apellido (DNI)';
@@ -262,6 +262,57 @@ function normNombre(n) {
     .replace(/\s*\(respuestas\)\s*$/i,'')
     .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g,'')
     .trim();
+}
+
+/* ── Leyenda: Expediente + Denominación (planilla de implementación) ── */
+
+function stripAcc(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function findCol(header) {
+  var terms = Array.prototype.slice.call(arguments, 1);
+  return header.findIndex(function(h) {
+    var n = stripAcc(h);
+    return terms.every(function(t) { return n.indexOf(stripAcc(t)) >= 0; });
+  });
+}
+function normCursoImpl(s) {
+  return stripAcc(s)
+    .replace(/^\d{4}\s*[-\u2013]\s*/i,'')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+// Busca en la planilla de implementación el curso por nombre y arma
+// la leyenda como "Expediente Denominación" (separados por un espacio).
+async function cargarLeyenda(nombreCurso) {
+  try {
+    const r = await fetch(NEW_SCRIPT_URL + '?action=getImplementacion');
+    const d = await r.json();
+    if (d.error || !d.values || d.values.length < 2) return '';
+    const header = d.values[0];
+    const rows   = d.values.slice(1);
+    const cExp   = findCol(header, 'expediente');
+    const cDenom = findCol(header, 'denominacion');
+    if (cDenom < 0) return '';
+
+    const qn = normCursoImpl(nombreCurso);
+    let row = rows.find(function(rw) { return normCursoImpl(rw[cDenom]) === qn; });
+    if (!row) {
+      row = rows.find(function(rw) {
+        const rn = normCursoImpl(rw[cDenom]);
+        return rn && qn && (rn.indexOf(qn) >= 0 || qn.indexOf(rn) >= 0);
+      });
+    }
+    if (!row) return '';
+
+    const expediente   = cExp >= 0 ? (row[cExp] || '').toString().trim() : '';
+    const denominacion = (row[cDenom] || '').toString().trim();
+    return [expediente, denominacion].filter(Boolean).join(' ');
+  } catch(e) {
+    console.warn('No se pudo obtener Expediente/Denominación:', e.message);
+    return '';
+  }
 }
 
 function normalizarFecha(f) {
@@ -435,7 +486,7 @@ function volverCursos() {
 
 async function iniciarProceso(sheetId, nombre, total, sheetIndex) {
   window._sheetIndex = sheetIndex || 0;
-  cursoActual = { sheetId: sheetId, nombre: nombre };
+  cursoActual = { sheetId: sheetId, nombre: nombre, leyenda: '' };
   doneCount = 0; errorCount = 0; results = [];
 
   document.getElementById('step-cursos').style.display  = 'none';
@@ -451,7 +502,13 @@ async function iniciarProceso(sheetId, nombre, total, sheetIndex) {
 
   try {
     addLog('Cargando planilla...');
-    const r   = await fetch(NEW_SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(sheetId));
+    const [r, leyenda] = await Promise.all([
+      fetch(NEW_SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(sheetId)),
+      cargarLeyenda(nombre)
+    ]);
+    cursoActual.leyenda = leyenda;
+    if (leyenda) addLog('Leyenda (Expediente Denominación): ' + leyenda);
+    else addLog('\u26a0 No se encontró Expediente/Denominación en la planilla de implementación; se usará el nombre del curso.');
     const d   = await r.json();
     const raw = Array.isArray(d) ? d : (d.values || []);
     if (raw.length < 2) throw new Error('La planilla no tiene inscriptos.');
@@ -714,7 +771,7 @@ function exportXLS() {
     'pagador_numero_doc','pagador_tipo_doc','pagador_domicilio'
   ];
 
-  var leyenda = normLeyenda(cursoActual.nombre);
+  var leyenda = cursoActual.leyenda || normLeyenda(cursoActual.nombre);
 
   /* Solo registros CON importe_cobrado */
   var incluidos = results.filter(function(r){ return r.importe && r.importe.toString().trim() !== ''; });

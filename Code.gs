@@ -14,7 +14,7 @@
 
 // ─── CONSTANTES DE CONFIGURACIÓN ────────────────────────────────────────────
 
-const CARPETA_INSCRIPCIONES_ID  = '1AQnG88tlwQGkGYeTz3qJ_cbEEa2sV2NV';
+const CARPETA_INSCRIPCIONES_PADRE_ID = '1qcn7akKHbKlXZgNpAAe9XM6B03eO7txP'; // Carpeta que contiene las subcarpetas por año (2025, 2026, 2027...)
 const PLANILLA_IMPLEMENTACION_ID = '1-pHtPMxfcnLLQq-0NAI8AxuZtBoyIbKInvXRIh5jvHU';
 const HOJA_IMPLEMENTACION       = 'Implementación';
 const ACCIONES_PERMITIDAS       = ['listSheets','getSheet','getImplementacion','getAllCursos','getFile','processFile','saveIngreso','getIngresos','saveMontoFila','saveColumna'];
@@ -110,7 +110,7 @@ function doGet(e) {
 // ─── HANDLERS ────────────────────────────────────────────────────────────────
 
 function handleListSheets() {
-  const folder = getDriveFolder(CARPETA_INSCRIPCIONES_ID);
+  const folder = getCarpetaInscripcionesDelAnio();
   if (!folder) return errorResponse('Carpeta de inscripciones no encontrada.', 404);
   const files = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
   const sheets = [];
@@ -118,7 +118,7 @@ function handleListSheets() {
     const file = files.next();
     sheets.push({ id: sanitizeString(file.getId()), name: sanitizeString(file.getName()) });
   }
-  return jsonResponse({ sheets: sheets });
+  return jsonResponse({ sheets: sheets, carpeta: sanitizeString(folder.getName()) });
 }
 
 /**
@@ -218,7 +218,7 @@ function handleGetAllCursos() {
     Logger.log('Error leyendo implementación: ' + e.message);
   }
 
-  const folder = getDriveFolder(CARPETA_INSCRIPCIONES_ID);
+  const folder = getCarpetaInscripcionesDelAnio();
   if (!folder) return errorResponse('Carpeta de inscripciones no encontrada.', 404);
 
   const archivos = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
@@ -440,6 +440,38 @@ function getDriveFolder(folderId) {
   if (!folderId || !REGEX_DRIVE_ID.test(folderId)) return null;
   try { return DriveApp.getFolderById(folderId); }
   catch (e) { Logger.log('Carpeta no encontrada: ' + folderId); return null; }
+}
+
+/**
+ * Devuelve la carpeta de inscripciones correspondiente al año actual.
+ * En Drive hay una carpeta por año (ej: "2026", "2027", ...) todas
+ * dentro de CARPETA_INSCRIPCIONES_PADRE_ID. Si la carpeta del año
+ * actual todavía no existe (ej: el 1° de enero, antes de crearla),
+ * cae de respaldo a la carpeta de año más reciente que encuentre.
+ */
+function getCarpetaInscripcionesDelAnio() {
+  const padre = getDriveFolder(CARPETA_INSCRIPCIONES_PADRE_ID);
+  if (!padre) return null;
+
+  const anio = new Date().getFullYear().toString();
+  const exacta = padre.getFoldersByName(anio);
+  if (exacta.hasNext()) return exacta.next();
+
+  // No existe todavía la carpeta del año actual: usar la más reciente como respaldo
+  let mejor = null, mejorAnio = -1;
+  const todas = padre.getFolders();
+  while (todas.hasNext()) {
+    const f = todas.next();
+    const n = parseInt(f.getName().trim(), 10);
+    if (!isNaN(n) && n > mejorAnio) { mejorAnio = n; mejor = f; }
+  }
+  if (mejor) {
+    Logger.log('No existe todavía la carpeta "' + anio + '"; se usa "' + mejor.getName() + '" como respaldo.');
+    return mejor;
+  }
+
+  Logger.log('No se encontró ninguna carpeta de año dentro de la carpeta padre.');
+  return null;
 }
 
 function jsonResponse(data) {

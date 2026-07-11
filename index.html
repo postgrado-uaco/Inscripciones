@@ -45,7 +45,8 @@ h1,h2,h3,h4{font-family:var(--fh);}
 .d-title{font-family:var(--fh);font-size:26px;font-weight:900;color:var(--on-s);letter-spacing:-.02em;margin-bottom:6px;}
 .d-bar{width:36px;height:3px;background:var(--primary);border-radius:2px;margin-bottom:24px;}
 
-.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.d-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+@media(max-width:900px){.d-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.d-grid{grid-template-columns:1fr;}}
 
 .d-card{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:22px;box-shadow:var(--sh);}
@@ -53,10 +54,11 @@ h1,h2,h3,h4{font-family:var(--fh);}
 .d-card-sub{font-size:12px;color:var(--on-sv);margin-bottom:16px;}
 .d-card-gear{float:right;font-size:15px;color:var(--on-sv);opacity:.5;cursor:pointer;margin-top:1px;}
 
-.d-donut-wrap{position:relative;width:180px;height:180px;margin:0 auto 16px;display:block;}
-.d-donut-wrap canvas{display:block;width:180px;height:180px;}
+.d-donut-wrap{position:relative;width:140px;height:140px;margin:0 auto 16px;display:block;}
+.d-donut-wrap canvas{display:block;width:140px;height:140px;}
 .d-donut-center{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.d-donut-num{font-family:var(--fh);font-size:32px;font-weight:900;line-height:1;}
+.d-donut-num{font-family:var(--fh);font-size:28px;font-weight:900;line-height:1;}
+.d-donut-num-sub{font-family:var(--fh);font-size:16px;font-weight:800;color:#b26a4a;line-height:1;margin-top:4px;}
 .d-donut-lbl{font-size:9px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
 
 .d-meta{display:flex;justify-content:space-between;border-top:1px solid var(--ov);padding-top:12px;margin-top:4px;}
@@ -89,9 +91,6 @@ h1,h2,h3,h4{font-family:var(--fh);}
 .cfg button:disabled{opacity:.5;cursor:not-allowed;}
 #key-saved{font-size:12px;color:var(--primary);margin-bottom:12px;font-weight:500;display:none;}
 .curso-list{display:flex;flex-direction:column;gap:10px;}
-.sort-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.sort-bar label{font-size:13px;font-weight:600;color:var(--on-s);white-space:nowrap;}
-.sort-bar select{font-size:13px;padding:5px 10px;border:1px solid var(--ov);border-radius:6px;background:#fff;color:var(--on-s);cursor:pointer;outline:none;}
 .curso-item{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:border-color .15s;}
 .curso-item:hover{border-color:var(--primary-c);}
 .curso-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
@@ -110,6 +109,38 @@ h1,h2,h3,h4{font-family:var(--fh);}
 .cbtn:hover{background:var(--surf-hi);}
 .cbtn-p{background:var(--primary);color:#fff;border-color:var(--primary);}
 .cbtn-p:hover{background:var(--primary-c);}
+
+/* ── CURSO META ── */
+.curso-meta{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;}
+.curso-meta-item{display:flex;align-items:flex-start;gap:6px;}
+.curso-meta-ico{font-size:13px;margin-top:1px;flex-shrink:0;}
+.curso-meta-label{font-size:10.5px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px;}
+.curso-meta-val{font-size:12.5px;color:var(--on-s);}
+.curso-actions{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--ov);padding-top:10px;margin-top:4px;}
+.cbtn{font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:6px;border:1px solid var(--ov);background:var(--surf-lo);color:var(--on-sv);cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s;}
+.cbtn:hover{background:var(--surf-hi);}
+.cbtn-p{background:var(--primary);color:#fff;border-color:var(--primary);}
+.cbtn-p:hover{background:var(--primary-c);}
+
+/* ── CURSO META Y ACCIONES ── */
+.curso-meta{display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 10px;}
+.curso-meta-item{display:flex;align-items:flex-start;gap:6px;}
+.curso-meta-ico{font-size:13px;margin-top:1px;flex-shrink:0;}
+.curso-meta-label{font-size:10.5px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px;}
+.curso-meta-val{font-size:12.5px;color:var(--on-s);}
+.curso-actions{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--ov);padding-top:10px;margin-top:4px;}
+.cbtn{font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:6px;border:1px solid var(--ov);background:var(--surf-lo);color:var(--on-sv);cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s;}
+.cbtn:hover{background:var(--surf-hi);}
+.cbtn-p{background:var(--primary);color:#fff;border-color:var(--primary);}
+.cbtn-p:hover{background:var(--primary-c);}
+
+/* ── SORT BAR ── */
+.sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-lbl{font-size:12px;font-weight:600;color:var(--on-sv);}
+.sort-btn{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1.5px solid var(--ov);background:#fff;color:var(--on-sv);cursor:pointer;font-family:var(--fb);transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+.sort-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
+.sort-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
 
 /* ── HERRAMIENTAS ── */
 .h-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -148,31 +179,31 @@ h1,h2,h3,h4{font-family:var(--fh);}
 </head>
 <body>
 
-<header class="hdr" role="banner">
+<header class="hdr">
   <div>
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av" aria-label="Usuario: Administrador" title="Administrador">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
   <nav class="sb" aria-label="Navegación principal">
-    <a class="sb-item" href="index.html">
+    <a class="sb-item on" href="index.html" id="nv-dashboard">
       <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
       Inicio
     </a>
-    <a class="sb-item" href="herramientas.html">
+    <a class="sb-item" href="herramientas.html" id="nv-herramientas">
       <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
       Herramientas
     </a>
-    <a class="sb-item" href="#">
+    <a class="sb-item" href="#" onclick="showPage('inscripciones');return false;" id="nv-inscripciones">
       <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></span>
       Configuración
     </a>
   </nav>
 
-  <main class="main" role="main" aria-live="polite" aria-atomic="false">
+  <main class="main">
 
     <!-- DASHBOARD -->
     <div class="pg on" id="pg-dashboard">
@@ -183,10 +214,10 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <div class="d-grid">
         <div class="d-card">
           <div class="d-card-title">INSCRIPCIONES</div>
-          <div class="d-card-sub">Año 2026</div>
+          <div class="d-card-sub">Año vigente</div>
           <div class="d-card-sub" id="d-sub1" style="display:none"></div>
           <div class="d-donut-wrap">
-            <canvas id="donut1" width="180" height="180"></canvas>
+            <canvas id="donut1" width="140" height="140"></canvas>
             <div class="d-donut-center">
               <div class="d-donut-num" id="d-num1">—</div>
               <div class="d-donut-lbl">estudiantes</div>
@@ -199,41 +230,58 @@ h1,h2,h3,h4{font-family:var(--fh);}
         </div>
 
         <div class="d-card">
-          <div class="d-card-title">INGRESOS</div>
-          <div class="d-card-sub">Año 2026</div>
-
+          <div class="d-card-title">OFERTA</div>
+          <div class="d-card-sub">Año vigente</div>
+          <div class="d-card-sub" id="d-sub2" style="display:none"></div>
           <div class="d-donut-wrap">
-            <canvas id="donut2" width="180" height="180"></canvas>
+            <canvas id="donut2" width="140" height="140"></canvas>
             <div class="d-donut-center">
-              <div id="d-num2" style="font-size:15px;font-weight:900;color:#6b3a2a;line-height:1.1">—</div>
-              <div id="d-num2b" style="font-size:13px;font-weight:700;color:#9e6b50;line-height:1;margin-top:6px">—</div>
+              <div class="d-donut-num" style="color:#6b3a2a" id="d-num2">—</div>
+              <div class="d-donut-lbl">cursos</div>
             </div>
           </div>
           <div>
-            <div class="d-avail-lbl"><span>Cursos verificados</span><span id="d-avail-pct">—</span></div>
+            <div class="d-avail-lbl"><span>Inscripciones abiertas</span><span id="d-avail-pct">—</span></div>
             <div class="d-avail-bg"><div class="d-avail-fill" id="d-avail-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="d-card">
+          <div class="d-card-title">INGRESOS</div>
+          <div class="d-card-sub">Año <span id="ing-anio">—</span></div>
+          <div class="d-donut-wrap">
+            <canvas id="donut3" width="140" height="140"></canvas>
+            <div class="d-donut-center">
+              <div class="d-donut-num" style="font-size:20px;color:#6b3a2a" id="d-ing-total">—</div>
+              <div class="d-donut-num-sub" id="d-ing-30">—</div>
+            </div>
+          </div>
+          <div>
+            <div class="d-avail-lbl"><span>Cursos verificados</span><span id="d-ing-verif">—</span></div>
+            <div class="d-avail-bg"><div class="d-avail-fill" id="d-ing-verif-bar" style="width:0%;background:#6b3a2a"></div></div>
           </div>
         </div>
       </div>
 
 
       <div style="margin-top:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
-          <div class="d-label" style="margin:0">Cursos Activos</div>
-          <div class="sort-bar" style="margin:0">
-            <label for="sort-courses">Ordenar:</label>
-            <select id="sort-courses" onchange="sortCursos()">
-              <option value="nombre">Nombre (A→Z)</option>
-              <option value="nombre-desc">Nombre (Z→A)</option>
-              <option value="inscriptos-desc">Más inscriptos</option>
-              <option value="inscriptos">Menos inscriptos</option>
-              <option value="estado">Abierta primero</option>
-            </select>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div class="d-label" style="margin-bottom:0" id="cursos-anio-label">Cursos</div>
+          <div class="sort-bar" style="margin-bottom:0">
+            <span class="sort-lbl">Ordenar:</span>
+            <button class="sort-btn on" onclick="setSortOrder('defecto',this)" id="sort-defecto">Recientes</button>
+            <button class="sort-btn" onclick="setSortOrder('nombre',this)" id="sort-nombre">A–Z</button>
+            <button class="sort-btn" onclick="setSortOrder('inscriptos',this)" id="sort-inscriptos">
+              <svg viewBox="0 0 24 24"><path d="M17 3v18M17 21l-4-4M17 21l4-4M7 21V3M7 3L3 7M7 3l4 4"/></svg>
+              Inscriptos
+            </button>
+            <button class="sort-btn" onclick="setSortOrder('estado',this)" id="sort-estado">Estado</button>
           </div>
         </div>
+        
         <div class="d-bar" style="margin-bottom:20px"></div>
-        <div id="curso-list-dash" class="curso-list" aria-live="polite" aria-label="Lista de cursos activos">
-          <div class="empty" style="padding:24px;color:var(--on-sv)" role="status">Obteniendo datos de los cursos, aguardá un momento...</div>
+        <div id="curso-list-dash" class="curso-list">
+          <div class="empty" style="padding:24px;color:var(--on-sv)">⏳ Obteniendo datos de los cursos, aguardá un momento...</div>
         </div>
       </div>
 
@@ -245,22 +293,43 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <div class="ph"><h1>Inscripciones</h1><p>Listado de cursos de posgrado con estado e inscriptos.</p></div>
       <div class="cfg" id="cfg-bar">
         <input type="password" id="apiKey" placeholder="Gemini API Key (AIzaSy...)" oninput="saveKey()" />
-        <button onclick="actualizarCursos()" id="btnCargar">Actualizar →</button>
+        <button onclick="cargarCursos()" id="btnCargar">Cargar cursos →</button>
       </div>
       <p id="key-saved">✓ API Key guardada</p>
-      <div id="al-ins" role="alert" aria-live="assertive"></div>
-      <div class="sort-bar">
-        <label for="sort-courses">Ordenar por:</label>
-        <select id="sort-courses" onchange="sortCursos()">
-          <option value="nombre">Nombre (A→Z)</option>
-          <option value="nombre-desc">Nombre (Z→A)</option>
-          <option value="inscriptos-desc">Más inscriptos</option>
-          <option value="inscriptos">Menos inscriptos</option>
-          <option value="estado">Estado (Abierta primero)</option>
-        </select>
+      <div id="al-ins"></div>
+      <div id="curso-list" class="curso-list">
+        <div class="empty">Ingresá tu API Key y cargá los cursos para ver el listado.</div>
       </div>
-      <div id="curso-list" class="curso-list" aria-live="polite" aria-label="Lista de cursos">
-        <div class="empty">Cargando cursos...</div>
+    </div>
+
+    <!-- REPORTES -->
+      <!-- HERRAMIENTAS -->
+    <div class="pg" id="pg-herramientas">
+      <div class="ph">
+        <h1>Herramientas</h1>
+        <p>Accedé a las herramientas de gestión académica y procesamiento de documentación.</p>
+      </div>
+      <div class="h-grid">
+        <a class="h-card" href="extractor_comprobantes.html">
+          <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M9 14l2 2 4-4"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+          <div class="h-body"><div class="h-name">Controlar pagos</div><div class="h-desc">Verificá los comprobantes de transferencia de cada inscripto.</div></div>
+        </a>
+        <a class="h-card" href="extractor_titulos.html">
+          <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg></div>
+          <div class="h-body"><div class="h-name">Controlar títulos</div><div class="h-desc">Verificá los títulos de grado adjuntos por los inscriptos.</div></div>
+        </a>
+        <a class="h-card" href="extractor_planilla_ventas.html">
+          <div class="h-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg></div>
+          <div class="h-body"><div class="h-name">Generar Pagos</div><div class="h-desc">Generá la planilla de ventas con los datos de facturación.</div></div>
+        </a>
+        <a class="h-card" href="#">
+          <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8M16 17H8M10 9H8"/></svg></div>
+          <div class="h-body"><div class="h-name">Generar Acta</div><div class="h-desc">Generá el acta de cierre del curso con los inscriptos.</div></div>
+        </a>
+        <a class="h-card" href="#">
+          <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></div>
+          <div class="h-body"><div class="h-name">Unir documentación</div><div class="h-desc">Combiná todos los documentos de un inscripto en un único PDF.</div></div>
+        </a>
       </div>
     </div>
 
@@ -268,111 +337,49 @@ h1,h2,h3,h4{font-family:var(--fh);}
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzVx9NHQ7KUkjesmz9wQ5qJwJW1_6NeTCzwVQ8qviWEAU0BP674TeXyoBh6Kg_PYjjfSA/exec';
-
-document.addEventListener('keydown', function(e) {
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('sb-item')) {
-    e.preventDefault();
-    e.target.click();
-  }
-});
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
 
 function showPage(id) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.sb-item').forEach(n => {
-    n.classList.remove('on');
-    n.removeAttribute('aria-current');
-  });
+  document.querySelectorAll('.sb-item').forEach(n => n.classList.remove('on'));
   const pg = document.getElementById('pg-' + id);
   const nv = document.getElementById('nv-' + id);
   if (pg) pg.classList.add('on');
-  if (nv) { nv.classList.add('on'); nv.setAttribute('aria-current', 'page'); }
+  if (nv) nv.classList.add('on');
+  if (id === 'inscripciones') {
+    const k = localStorage.getItem('gemini_api_key');
+    const list = document.getElementById('curso-list');
+    if (k && (list.children.length === 0 || list.children[0]?.classList.contains('empty'))) {
+      cargarCursos();
+    }
+  }
 }
 
 function saveKey() {
-  alert('El almacenamiento de la API Key en el cliente ha sido deshabilitado. Por favor, configure un backend seguro para manejar las claves.');
-}
-
-async function cargarCursos(forzar = false) {
-  const btn = document.getElementById('btnCargar');
-
-  // Usar caché de sesión si existe y no se forzó actualización
-  if (!forzar) {
-    const cached = sessionStorage.getItem('cursos_cache');
-    if (cached) {
-      try {
-        const cursos = JSON.parse(cached);
-        renderCursos(cursos);
-        return;
-      } catch { /* caché inválida, continuar con fetch */ }
-    }
-  }
-
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="sp"></span> Cargando...'; }
-  document.getElementById('al-ins').innerHTML = '';
-  document.getElementById('curso-list').innerHTML = '<div class="empty">Obteniendo cursos...</div>';
-  document.getElementById('curso-list-dash').innerHTML = '<div class="empty" style="padding:24px">⏳ Obteniendo datos de los cursos...</div>';
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=getAllCursos`);
-    if (!res.ok) throw new Error(`El servidor respondió con el código ${res.status}. Intentá de nuevo en unos minutos.`);
-    let data;
-    try { data = await res.json(); } catch { throw new Error('La respuesta del servidor no es válida. Es posible que el script de Google Apps no esté publicado correctamente.'); }
-    if (data.error) throw new Error(`El backend informó un error: ${data.error}`);
-    const cursos = data.cursos || [];
-    if (!cursos.length) {
-      const msg = '<div class="empty" role="status">No se encontraron cursos en la carpeta configurada.</div>';
-      document.getElementById('curso-list').innerHTML = msg;
-      document.getElementById('curso-list-dash').innerHTML = msg;
-      return;
-    }
-    sessionStorage.setItem('cursos_cache', JSON.stringify(cursos));
-    renderCursos(cursos);
-    document.getElementById('al-ins').innerHTML = `<div class="al al-s" role="status">✓ ${cursos.length} curso${cursos.length !== 1 ? 's' : ''} cargado${cursos.length !== 1 ? 's' : ''} correctamente.</div>`;
-  } catch (e) {
-    const esRed = e instanceof TypeError;
-    const msg = esRed
-      ? 'No se pudo conectar con el servidor. Si el problema persiste, verificá que el script esté publicado correctamente en Apps Script (Implementar → Administrar implementaciones).'
-      : e.message;
-    document.getElementById('al-ins').innerHTML = `<div class="al al-e" role="alert">⚠ ${msg}</div>`;
-    const errHtml = `<div class="empty" role="status">No se pudieron cargar los cursos.<br><small style="color:var(--on-sv)">${esRed ? 'Error de red: ' + e.message : e.message}</small></div>`;
-    document.getElementById('curso-list').innerHTML = errHtml;
-    document.getElementById('curso-list-dash').innerHTML = errHtml;
-    console.error('[cargarCursos] Error:', e.name, e.message, e);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Actualizar →'; }
-  }
+  const k = document.getElementById('apiKey').value.trim();
+  if (k) { localStorage.setItem('gemini_api_key', k); document.getElementById('key-saved').style.display = 'block'; }
 }
 
 window.onload = function() {
+  const goto = sessionStorage.getItem('goto');
+  if (goto) { sessionStorage.removeItem('goto'); showPage(goto); }
+  const k = localStorage.getItem('gemini_api_key');
   drawDonut('donut1', 0, '#214b46');
   drawDonut('donut2', 0, '#6b3a2a');
-  cargarCursos();
+  drawDonut('donut3', 0, '#6b3a2a');
+  if (k) {
+    document.getElementById('apiKey').value = k;
+    document.getElementById('key-saved').style.display = 'block';
+    cargarCursos();
+  }
 };
-
-function actualizarCursos() { cargarCursos(true); }
-
-let _cursosCache = [];
-
-function sortCursos() {
-  if (!_cursosCache.length) return;
-  const sortBy = document.getElementById('sort-courses').value;
-  const sorted = [..._cursosCache].sort((a, b) => {
-    if (sortBy === 'nombre')         return a.nombre.localeCompare(b.nombre);
-    if (sortBy === 'nombre-desc')    return b.nombre.localeCompare(a.nombre);
-    if (sortBy === 'inscriptos-desc') return b.inscriptos - a.inscriptos;
-    if (sortBy === 'inscriptos')     return a.inscriptos - b.inscriptos;
-    if (sortBy === 'estado')         return (b.abierto ? 1 : 0) - (a.abierto ? 1 : 0);
-    return 0;
-  });
-  renderCursos(sorted, true);
-}
 
 function drawDonut(id, pct, color) {
   const c = document.getElementById(id);
   if (!c) return;
   const ctx = c.getContext('2d');
-  const cx = 90, cy = 90, r = 62, lw = 20;
-  ctx.clearRect(0, 0, 180, 180);
+  const cx = 70, cy = 70, r = 48, lw = 18;
+  ctx.clearRect(0, 0, 140, 140);
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2*Math.PI);
   ctx.strokeStyle = '#e8e8e7'; ctx.lineWidth = lw; ctx.stroke();
   if (pct > 0) {
@@ -381,16 +388,232 @@ function drawDonut(id, pct, color) {
   }
 }
 
-function renderCursos(cursos, skipCache = false) {
-  if (!skipCache) _cursosCache = cursos;
+function actualizarIngresos(cursos) {
+  const total = cursos.reduce((s, c) => s + (c.montoCobrado || 0), 0);
+  const treinta = total * 0.3;
+  const verificados = cursos.filter(c => c.verificado).length;
+  const totalCursos = cursos.length;
+  const pct = totalCursos > 0 ? verificados / totalCursos : 0;
+
+  document.getElementById('ing-anio').textContent = new Date().getFullYear();
+  document.getElementById('d-ing-total').textContent = '$' + Math.round(total).toLocaleString('es-AR');
+  document.getElementById('d-ing-30').textContent = '$' + Math.round(treinta).toLocaleString('es-AR');
+  document.getElementById('d-ing-verif').textContent = verificados + ' / ' + totalCursos;
+  document.getElementById('d-ing-verif-bar').style.width = Math.round(pct * 100) + '%';
+  drawDonut('donut3', pct, '#6b3a2a');
+}
+
+function normNombre(n) {
+  return n.replace(/^\d{4}\s*[-–]\s*/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/["'`«»“”‘’]/g,'')
+    .trim();
+}
+
+// Detectar columna por nombre parcial
+function findCol(header, ...terms) {
+  const n = s => s?.toString().trim().toLowerCase();
+  return header.findIndex(h => terms.every(t => n(h).includes(t.toLowerCase())));
+}
+
+async function cargarCursos() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { alert('Ingresá tu Gemini API Key primero.'); return; }
+  saveKey();
+  const btn = document.getElementById('btnCargar');
+  btn.disabled = true; btn.innerHTML = '<span class="sp"></span> Cargando...';
+  document.getElementById('al-ins').innerHTML = '';
+  document.getElementById('curso-list').innerHTML = '<div class="empty">Buscando cursos en Google Drive...</div>';
+  try {
+    // 1. Cargar planilla de implementación
+    let implData = {};
+    try {
+      const ri = await fetch(`${SCRIPT_URL}?action=getImplementacion`);
+      const di = await ri.json();
+      if (!di.error && di.values && di.values.length > 1) {
+        const [hdr, ...rows] = di.values;
+        // Columnas exactas de la planilla de implementación
+        const cNombre = hdr.findIndex(h => h?.toString().trim() === 'Denominacion del curso');
+        const cDocente = hdr.findIndex(h => h?.toString().trim() === 'Docente/s Responsable/s');
+        const cCarga = hdr.findIndex(h => h?.toString().trim() === 'Carga Horaria');
+        const cFecha = hdr.findIndex(h => h?.toString().trim() === 'Fechas de realización');
+        const cEstado = hdr.findIndex(h => h?.toString().trim() === 'Estado del formulario');
+        const cInscriptos = hdr.findIndex(h => h?.toString().trim() === 'Cantidad de inscriptos');
+
+        rows.forEach(r => {
+          const nombre = r[cNombre]?.toString().trim();
+          if (!nombre) return;
+          const docente = cDocente >= 0 ? r[cDocente]?.toString().trim() : '';
+          const cargaHoraria = cCarga >= 0 ? r[cCarga]?.toString().trim() : '';
+          const fecha = cFecha >= 0 ? r[cFecha]?.toString().trim() : '';
+          const estadoForm = cEstado >= 0 ? r[cEstado]?.toString().trim() : '';
+          const cantInscriptos = cInscriptos >= 0 ? r[cInscriptos]?.toString().trim() : '';
+          // Determinar si está abierto: cerrado si el estado contiene "cerr" o "no acepta" etc.
+          const entry = { docente, cargaHoraria, fecha, cantInscriptos };
+          // Guardar con múltiples claves para matching flexible
+          [
+            nombre.toLowerCase(),
+            nombre.replace(/^\d{4}\s*[-–]\s*/i,'').toLowerCase(),
+            nombre.replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'').toLowerCase().trim(),
+            nombre.replace(/^\d{4}\s*[-–]\s*/i,'').replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'').toLowerCase().trim()
+          ].forEach(k => { if (k) implData[k] = entry; });
+        });
+      }
+    } catch(e) { /* Sin datos de implementación */ }
+
+    // 2. Listar planillas de la carpeta
+    const res = await fetch(`${SCRIPT_URL}?action=listSheets`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const sheets = data.sheets || [];
+    const carpetaAnio = data.carpeta || new Date().getFullYear().toString();
+    const lblAnio = document.getElementById('cursos-anio-label');
+    if (lblAnio) lblAnio.textContent = 'Cursos ' + carpetaAnio;
+    if (!sheets.length) {
+      document.getElementById('curso-list').innerHTML = '<div class="empty">No se encontraron planillas.</div>';
+      btn.disabled = false; btn.textContent = 'Cargar cursos →'; return;
+    }
+
+    // 3. Mostrar cursos inmediatamente con datos de implementación
+    // y cargar inscriptos en paralelo en segundo plano
+    const normCurso = s => s.toLowerCase()
+      .replace(/^\d{4}\s*[-–]\s*/i,'')
+      .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'')
+      .replace(/\s+/g,' ').trim();
+
+    const cursos = sheets.map(sheet => {
+      const nombre = normNombre(sheet.name);
+      let impl = implData[nombre.toLowerCase()] || implData[sheet.name.toLowerCase()] || {};
+      if (!impl.docente && !impl.fecha) {
+        const nNorm = normCurso(nombre);
+        const key = Object.keys(implData).find(k => {
+          const kNorm = normCurso(k);
+          return kNorm === nNorm || kNorm.includes(nNorm) || nNorm.includes(kNorm);
+        });
+        if (key) impl = implData[key];
+      }
+      return {
+        id: sheet.id, name: sheet.name, nombre,
+        inscriptos: impl.cantInscriptos ? parseInt(impl.cantInscriptos) || 0 : 0,
+        abierto: true,
+        docente: impl.docente || '',
+        cargaHoraria: impl.cargaHoraria || '',
+        fecha: impl.fecha || '',
+        _loadingInscriptos: true
+      };
+    });
+
+    // Mostrar inmediatamente con datos de implementación
+    renderCursos(cursos, apiKey);
+    document.getElementById('al-ins').innerHTML = `<div class="al al-s">✓ ${cursos.length} cursos cargados.</div>`;
+
+    // Cargar inscriptos reales en paralelo (sin bloquear la UI)
+    Promise.all(cursos.map(async (c, i) => {
+      try {
+        const r = await fetch(`${SCRIPT_URL}?action=getSheet&sheetId=${encodeURIComponent(c.id)}`);
+        const d = await r.json();
+        const raw = Array.isArray(d) ? d : (d.values || []);
+        c.inscriptos = Math.max(0, raw.length - 1);
+        c.abierto = d.formAbierto !== false;
+
+        // Ingresos: sumar el monto de comprobantes ya verificados.
+        // Reconoce dos esquemas de columnas:
+        //  - nuevo: "Monto comprobante" + "Estado comprobante" = 'OK'
+        //  - viejo: "Monto verificado" (sin columna de estado; si tiene monto cargado, está verificado)
+        c.montoCobrado = 0;
+        c.comprobantesTotal = 0;
+        c.comprobantesVerificados = 0;
+        if (raw.length > 1) {
+          const hdr = raw[0];
+          const norm = h => h ? h.toString().trim().toLowerCase().replace(/\s+/g,' ') : '';
+          const montoIdx    = hdr.findIndex(h => norm(h).includes('monto') && (norm(h).includes('comprobante') || norm(h).includes('verificado')));
+          const estadoIdx   = hdr.findIndex(h => norm(h).includes('estado') && norm(h).includes('comprobante'));
+          const compIdx     = hdr.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('transferencia') && !norm(h).includes('externo'));
+          const compExtIdx  = hdr.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('externo'));
+          raw.slice(1).forEach(row => {
+            const tieneComprobante = (compIdx >= 0 && (row[compIdx]||'').toString().trim()) ||
+                                      (compExtIdx >= 0 && (row[compExtIdx]||'').toString().trim());
+            if (tieneComprobante) c.comprobantesTotal++;
+
+            const montoRaw = montoIdx >= 0 ? (row[montoIdx]||'').toString().trim() : '';
+            const verificado = estadoIdx >= 0
+              ? (row[estadoIdx]||'').toString().trim() === 'OK'   // esquema nuevo
+              : !!montoRaw;                                        // esquema viejo: hay monto => verificado
+            if (verificado) {
+              c.comprobantesVerificados++;
+              const monto = parseFloat(montoRaw);
+              if (!isNaN(monto)) c.montoCobrado += monto;
+            }
+          });
+        }
+        // Verificado = no queda ningún comprobante pendiente de revisar (0/0 cuenta como verificado)
+        c.verificado = c.comprobantesVerificados === c.comprobantesTotal;
+
+        c._loadingInscriptos = false;
+      } catch(e) { c._loadingInscriptos = false; }
+    })).then(() => { renderCursos(cursos, apiKey); actualizarIngresos(cursos); });
+  } catch(e) {
+    document.getElementById('al-ins').innerHTML = `<div class="al al-e">Error: ${e.message}</div>`;
+    document.getElementById('curso-list').innerHTML = '<div class="empty">No se pudo cargar la lista.</div>';
+  }
+  btn.disabled = false; btn.textContent = 'Actualizar →';
+}
+
+let currentSortOrder = 'defecto';
+let cursosData = [];
+
+// Extrae la primera fecha DD/MM(/AAAA) del texto libre de "Fechas de realización"
+// y la convierte en un número comparable (AAAAMMDD). Si no encuentra fecha, -1.
+function parseFechaInicio(fechaStr) {
+  if (!fechaStr) return -1;
+  const m = fechaStr.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (!m) return -1;
+  const dd = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  let yyyy = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (yyyy < 100) yyyy += 2000;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return -1;
+  return yyyy * 10000 + mm * 100 + dd;
+}
+
+function setSortOrder(order, btn) {
+  currentSortOrder = order;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  if (cursosData.length) renderCursos(cursosData, localStorage.getItem('gemini_api_key') || '');
+}
+
+function sortCursos(cursos) {
+  const sorted = [...cursos];
+  if (currentSortOrder === 'defecto') {
+    // Por defecto: cursos con inscripción Abierta primero, y entre ellos, fecha de inicio más nueva primero
+    sorted.sort((a, b) => {
+      if (a.abierto !== b.abierto) return a.abierto ? -1 : 1;
+      return parseFechaInicio(b.fecha) - parseFechaInicio(a.fecha);
+    });
+  } else if (currentSortOrder === 'nombre') {
+    sorted.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+  } else if (currentSortOrder === 'inscriptos') {
+    sorted.sort((a, b) => (b.inscriptos || 0) - (a.inscriptos || 0));
+  } else if (currentSortOrder === 'estado') {
+    // Abierta primero, luego por nombre
+    sorted.sort((a, b) => {
+      if (a.abierto === b.abierto) return a.nombre.localeCompare(b.nombre, 'es');
+      return a.abierto ? -1 : 1;
+    });
+  }
+  return sorted;
+}
+
+function renderCursos(cursos, apiKey) {
   const list = document.getElementById('curso-list');
   list.innerHTML = '';
   cursos.forEach(c => {
     const div = document.createElement('div');
     div.className = 'curso-item';
-    div.setAttribute('data-name', c.nombre || '');
-    div.setAttribute('data-date', c.fecha || '');
-    div.setAttribute('data-status', c.abierto ? 'Abierta' : 'Cerrada');
     const estadoBadge = c.abierto
       ? '<span class="badge-open">● Abierta</span>'
       : '<span class="badge-closed">● Cerrada</span>';
@@ -416,13 +639,18 @@ function renderCursos(cursos, skipCache = false) {
     list.appendChild(div);
   });
 
-  // Renderizar también en el dashboard
+  // Guardar y ordenar
+  cursosData = cursos;
+  try { sessionStorage.setItem('cursosData', JSON.stringify(cursos)); } catch(e) {}
+  const sortedCursos = sortCursos(cursos);
   const dashList = document.getElementById('curso-list-dash');
   if (dashList) {
     dashList.innerHTML = '';
-    cursos.forEach(c => {
+    sortedCursos.forEach(c => {
       const div = document.createElement('div');
       div.className = 'curso-item';
+      div.style.cursor = 'pointer';
+      div.onclick = () => { window.location.href = 'curso_detalle.html?nombre=' + encodeURIComponent(c.nombre) + '&nameOrig=' + encodeURIComponent(c.name || c.nombre); };
       const estadoBadge = c.abierto
         ? '<span class="badge-open">● Abierta</span>'
         : '<span class="badge-closed">● Cerrada</span>';
@@ -444,6 +672,9 @@ function renderCursos(cursos, skipCache = false) {
           </div>
         </div>
         ${(docenteHtml || cargaHtml || fechaHtml) ? `<div class="curso-meta">${docenteHtml}${cargaHtml}${fechaHtml}</div>` : ''}
+        <div class="curso-actions" onclick="event.stopPropagation()">
+          <a class="cbtn cbtn-p" href="curso_detalle.html?nombre=${encodeURIComponent(c.nombre)}&nameOrig=${encodeURIComponent(c.name||c.nombre)}">Ver detalle</a>
+        </div>
       `;
       dashList.appendChild(div);
     });
@@ -460,25 +691,12 @@ function renderCursos(cursos, skipCache = false) {
   document.getElementById('d-prom-bar').style.width = Math.min(100, Math.round(prom / maxProm * 100)) + '%';
   drawDonut('donut1', 0.75, '#214b46');
   if (top) {
-    // Cargar ingresos desde el backend de forma asíncrona
-    (async () => {
-      try {
-        const ir = await fetch(`${SCRIPT_URL}?action=getIngresos`);
-        if (!ir.ok) return;
-        const id = await ir.json();
-        if (id.error) return;
-        const totalPagos  = id.total || 0;
-        const cursosVerif = Object.keys(id.pagos || {}).length;
-        if (totalPagos > 0) {
-          const treinta = Math.round(totalPagos * 0.30);
-          document.getElementById('d-num2').textContent = '$' + Math.round(totalPagos).toLocaleString('es-AR');
-          document.getElementById('d-num2b').textContent = '$' + treinta.toLocaleString('es-AR');
-          drawDonut('donut2', Math.min(0.9, cursosVerif / Math.max(cursos.length, 1)), '#6b3a2a');
-        }
-        document.getElementById('d-avail-pct').textContent = cursosVerif + ' / ' + cursos.length;
-        document.getElementById('d-avail-bar').style.width = Math.round(cursosVerif / Math.max(cursos.length, 1) * 100) + '%';
-      } catch(e) { /* silenciar errores de ingresos */ }
-    })();
+    document.getElementById('d-num2').textContent = cursos.length;
+    document.getElementById('d-sub2').textContent = cursos.length + ' curso' + (cursos.length !== 1 ? 's' : '') + ' activos';
+    const pct2 = Math.min(0.85, cursos.length / Math.max(cursos.length * 1.2, 1));
+    drawDonut('donut2', pct2, '#6b3a2a');
+    document.getElementById('d-avail-pct').textContent = cursos.filter(c => c.abierto).length + ' abiertas';
+    document.getElementById('d-avail-bar').style.width = Math.round(cursos.filter(c => c.abierto).length / cursos.length * 100) + '%';
   }
 }
 </script>
