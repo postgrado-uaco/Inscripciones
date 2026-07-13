@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generar constancias — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;
+  --on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;--err:#ba1a1a;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3{font-family:var(--fh);}
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+.app-body{display:flex;flex:1;overflow:hidden;}
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.main{flex:1;overflow-y:auto;padding:32px 28px;}
+.wrap{max-width:900px;}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--on-sv);text-decoration:none;margin-bottom:18px;}
+.bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--on-sv);margin-bottom:14px;flex-wrap:wrap;}
+.bc a{color:var(--primary);font-weight:600;text-decoration:none;}
+.bc a:hover{text-decoration:underline;}
+.bc-sep{color:var(--ov);}
+.bc-cur{font-weight:600;color:var(--on-s);}
+.back svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ph h1{font-size:26px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);margin-bottom:22px;}
+.card{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:22px;box-shadow:var(--sh);margin-bottom:16px;}
+.curso-list{display:flex;flex-direction:column;gap:8px;}
+.curso-pick{padding:12px 14px;border:1px solid var(--ov);border-radius:var(--rsm);cursor:pointer;font-size:13.5px;font-weight:600;transition:all .15s;}
+.curso-pick:hover{border-color:var(--primary-c);background:var(--surf-lo);}
+.drop{border:2px dashed var(--ov);border-radius:var(--r);padding:36px 20px;text-align:center;cursor:pointer;transition:all .15s;}
+.drop:hover,.drop.over{border-color:var(--primary-c);background:var(--surf-lo);}
+.drop input{display:none;}
+.btn{background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:var(--fb);}
+.btn:hover{background:var(--primary-c);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:none;border:1px solid var(--ov);color:var(--on-s);}
+.btn-ghost:hover{background:var(--surf-c);}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th{text-align:left;padding:8px 6px;border-bottom:2px solid var(--ov);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--on-sv);}
+td{padding:6px;border-bottom:1px solid var(--surf-hi);vertical-align:middle;}
+select,input[type=text]{font-family:var(--fb);font-size:12.5px;padding:5px 7px;border:1px solid var(--ov);border-radius:6px;width:100%;}
+.badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.badge-ok{background:#e8f5e9;color:#2e7d32;}
+.badge-warn{background:#fff8e1;color:#8a6d00;}
+.badge-err{background:#fdecea;color:#c62828;}
+.log{font-family:monospace;font-size:11.5px;background:var(--surf-lo);border-radius:8px;padding:10px;max-height:150px;overflow-y:auto;margin-top:10px;white-space:pre-wrap;display:none;}
+.res-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--surf-hi);font-size:12.5px;}
+.res-item a{color:var(--primary);font-weight:700;text-decoration:none;}
+.res-item a:hover{text-decoration:underline;}
+.step{display:none;}
+.step.on{display:block;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
+  <div class="av">AD</div>
+</header>
+
+<div class="app-body">
+  <nav class="sb">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Inicio
+    </a>
+    <a class="sb-item on" href="herramientas.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
+    </a>
+    <a class="sb-item" href="configuracion.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
+    </a>
+  </nav>
+
+  <main class="main">
+    <div class="wrap">
+      <nav class="bc">
+        <a href="herramientas.html">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Generar constancias</span>
+      </nav>
+      <div class="ph">
+        <h1>Generar constancias</h1>
+        <p>Subí el acta con las notas que envió el docente y generá las constancias de curso aprobado en PDF.</p>
+      </div>
+
+      <!-- PASO 1: subir acta -->
+      <div class="step on" id="step-upload">
+        <div class="card">
+          <h3 style="margin-bottom:4px;font-size:14px">1. Subí el acta con las notas (PDF o imagen)</h3>
+          <p style="font-size:12.5px;color:var(--on-sv);margin-bottom:14px">El curso se detecta solo, leyendo el "Nombre Identificatorio" del acta.</p>
+          <div class="drop" id="drop">
+            <input type="file" id="fileInput" accept="application/pdf,image/*">
+            <div id="drop-txt">📄 Arrastrá el acta acá o hacé click para elegirla</div>
+          </div>
+          <div class="log" id="log-extract"></div>
+        </div>
+      </div>
+
+      <!-- PASO 1b: respaldo si no se pudo detectar el curso solo -->
+      <div class="step" id="step-curso">
+        <div class="card">
+          <h3 style="margin-bottom:4px;font-size:14px">No pude reconocer el curso automáticamente</h3>
+          <p style="font-size:12.5px;color:var(--on-sv);margin-bottom:14px" id="curso-detectado-txt"></p>
+          <div class="curso-list" id="curso-list"></div>
+          <div style="margin-top:14px">
+            <button class="btn btn-ghost" onclick="volverACursos()">← Volver a subir el acta</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: revisar y generar -->
+      <div class="step" id="step-revisar">
+        <div class="card">
+          <h3 style="margin-bottom:4px;font-size:14px" id="curso-titulo-2"></h3>
+          <p style="font-size:12.5px;color:var(--on-sv);margin-bottom:14px">2. Revisá los datos extraídos del acta (podés corregirlos) y elegí a quién generarle la constancia</p>
+          <div style="overflow-x:auto">
+            <table id="tabla-alumnos"></table>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;align-items:center">
+            <button class="btn" id="btnGenerar" onclick="generarConstancias()">Generar constancias →</button>
+            <button class="btn btn-ghost" onclick="volverACursos()">← Subir otra acta</button>
+            <span id="genStatus" style="font-size:12.5px;color:var(--on-sv)"></span>
+          </div>
+          <div class="log" id="log-gen"></div>
+        </div>
+      </div>
+
+      <!-- PASO 3: resultados -->
+      <div class="step" id="step-resultados">
+        <div class="card">
+          <h3 style="margin-bottom:12px;font-size:14px">✓ Constancias generadas</h3>
+          <div id="resultados-list"></div>
+          <div style="margin-top:16px">
+            <button class="btn btn-ghost" onclick="volverACursos()">← Generar otro curso</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+
+let cursoActual = null; // { id, nombre }
+let alumnosExtraidos = [];
+
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function volverACursos() {
+  cursoActual = null; alumnosExtraidos = []; archivoActual = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('drop-txt').textContent = '📄 Arrastrá el acta acá o hacé click para elegirla';
+  document.getElementById('log-extract').style.display = 'none';
+  document.getElementById('log-extract').textContent = '';
+  showStep('step-upload');
+}
+
+let archivoActual = null; // guardamos el File para poder reintentar si hace falta elegir el curso a mano
+
+function elegirCursoManual(s) {
+  cursoActual = { id: s.id, nombre: s.name };
+  if (archivoActual) procesarActa(archivoActual, s.id);
+}
+
+async function mostrarPickerManual(cursoDetectado, cursosDisponibles) {
+  document.getElementById('curso-detectado-txt').textContent = cursoDetectado
+    ? `El acta dice "${cursoDetectado}", pero no encontré una planilla con un nombre parecido. Elegí el curso correcto:`
+    : 'No pude leer el nombre del curso en el acta. Elegí el curso correcto:';
+  const list = document.getElementById('curso-list');
+  list.innerHTML = '';
+  (cursosDisponibles || []).forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'curso-pick';
+    div.textContent = s.name;
+    div.onclick = () => elegirCursoManual(s);
+    list.appendChild(div);
+  });
+  showStep('step-curso');
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+drop.onclick = () => fileInput.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) { archivoActual = e.dataTransfer.files[0]; procesarActa(archivoActual); } };
+fileInput.onchange = () => { if (fileInput.files[0]) { archivoActual = fileInput.files[0]; procesarActa(archivoActual); } };
+
+function addLog(id, msg) {
+  const log = document.getElementById(id);
+  log.style.display = 'block';
+  log.textContent += msg + '\n';
+  log.scrollTop = log.scrollHeight;
+}
+
+async function procesarActa(file, sheetIdManual) {
+  document.getElementById('drop-txt').textContent = '📄 ' + file.name;
+  document.getElementById('log-extract').textContent = '';
+  addLog('log-extract', sheetIdManual ? 'Releyendo acta para el curso elegido...' : 'Leyendo acta con Gemini y detectando el curso...');
+  try {
+    const base64 = await fileToBase64(file);
+    const body = { action: 'extraerActa', base64, mimeType: file.type };
+    if (sheetIdManual) body.sheetId = sheetIdManual;
+    const r = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body) });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    if (d.necesitaCursoManual) {
+      addLog('log-extract', '⚠ No se pudo detectar el curso automáticamente.');
+      mostrarPickerManual(d.cursoDetectado, d.cursosDisponibles);
+      return;
+    }
+
+    cursoActual = { id: d.sheetId, nombre: d.curso };
+    alumnosExtraidos = d.alumnos || [];
+    addLog('log-extract', `✓ Curso detectado: "${d.curso}". ${alumnosExtraidos.length} alumnos leídos del acta.`);
+    document.getElementById('curso-titulo-2').textContent = cursoActual.nombre;
+    renderTabla();
+    showStep('step-revisar');
+  } catch(e) {
+    addLog('log-extract', '✗ Error: ' + e.message);
+  }
+}
+
+function esc(s){ return (s??'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+const BADGE_CONDICION = {
+  'Aprobado':  '<span class="badge badge-ok">Aprobado</span>',
+  'Asistente': '<span class="badge badge-warn">Asistente</span>',
+  'Ausente':   '<span class="badge badge-err">Ausente</span>',
+};
+
+function renderTabla() {
+  const tbl = document.getElementById('tabla-alumnos');
+  let html = `<tr><th></th><th>Apellido y Nombre</th><th>DNI</th><th>Condición</th><th>Calificación</th><th>Match</th></tr>`;
+  alumnosExtraidos.forEach((al, i) => {
+    const esAusente = al.condicion === 'Ausente';
+    const puedeGenerar = al.matched && !esAusente;
+    const checked = al.condicion === 'Aprobado' && puedeGenerar ? 'checked' : '';
+    const matchBadge = !al.matched
+      ? '<span class="badge badge-warn">⚠ no encontrado en la planilla</span>'
+      : esAusente
+        ? '<span class="badge badge-err">✗ ausente, no genera constancia</span>'
+        : '<span class="badge badge-ok">✓ encontrado</span>';
+    html += `<tr>
+      <td><input type="checkbox" id="chk-${i}" ${checked} ${puedeGenerar?'':'disabled'}></td>
+      <td>${esc(al.apellido)}, ${esc(al.nombre)}</td>
+      <td>${esc(al.dni)||'—'}</td>
+      <td>${BADGE_CONDICION[al.condicion] || esc(al.condicion) || '—'}</td>
+      <td>${esc(al.calificacion) || '—'}</td>
+      <td>${matchBadge}</td>
+    </tr>`;
+  });
+  tbl.innerHTML = html;
+}
+
+async function generarConstancias() {
+  const filas = [];
+  alumnosExtraidos.forEach((al, i) => {
+    const chk = document.getElementById('chk-' + i);
+    if (chk && chk.checked && al.rowIdx) filas.push(al.rowIdx);
+  });
+  if (!filas.length) { document.getElementById('genStatus').textContent = 'Elegí al menos un alumno.'; return; }
+
+  const btn = document.getElementById('btnGenerar');
+  btn.disabled = true;
+  document.getElementById('genStatus').textContent = `Generando ${filas.length} constancia(s)...`;
+  addLog('log-gen', `Generando ${filas.length} constancia(s)...`);
+
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'generarConstancias', sheetId: cursoActual.id, curso: cursoActual.nombre, filas })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    mostrarResultados(d.constancias || []);
+  } catch(e) {
+    addLog('log-gen', '✗ Error: ' + e.message);
+    document.getElementById('genStatus').textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function mostrarResultados(constancias) {
+  const list = document.getElementById('resultados-list');
+  list.innerHTML = '';
+  constancias.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'res-item';
+    if (c.ok) {
+      div.innerHTML = `<span>${c.nombre}</span><a href="${c.url}" target="_blank">Descargar PDF ↗</a>`;
+    } else {
+      div.innerHTML = `<span>Fila ${c.rowIdx}</span><span class="badge badge-err">✗ ${c.error||'error'}</span>`;
+    }
+    list.appendChild(div);
+  });
+  showStep('step-resultados');
+}
+
+// La app arranca directo en el paso de subir el acta (step-upload ya está "on" por defecto).
+</script>
+</body>
+</html>

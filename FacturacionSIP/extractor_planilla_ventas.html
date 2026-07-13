@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planilla de ventas — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;--surf-hx:#e2e3e1;
+  --sec-c:#cfe6f2;--on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;--err:#ba1a1a;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shm:0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3,h4{font-family:var(--fh);}
+
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+
+.app-body{display:flex;flex:1;overflow:hidden;}
+
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+.main{flex:1;overflow-y:auto;padding:32px 28px;}
+
+/* BREADCRUMB */
+.bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--on-sv);margin-bottom:20px;flex-wrap:wrap;}
+.bc a{color:var(--primary);font-weight:600;text-decoration:none;}
+.bc a:hover{text-decoration:underline;}
+.bc-sep{color:var(--ov);}
+.bc-cur{font-weight:600;color:var(--on-s);}
+
+.ph{margin-bottom:24px;}
+.ph h1{font-size:28px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);line-height:1.6;}
+
+/* CURSOS */
+.curso-list{display:flex;flex-direction:column;gap:10px;}
+.sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-lbl{font-size:12px;font-weight:600;color:var(--on-sv);}
+.sort-btn{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1.5px solid var(--ov);background:#fff;color:var(--on-sv);cursor:pointer;font-family:var(--fb);transition:all .15s;}
+.sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+.sort-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
+.sort-bar label{font-size:13px;font-weight:600;color:var(--on-s);white-space:nowrap;}
+.sort-bar select{font-size:13px;padding:5px 10px;border:1px solid var(--ov);border-radius:6px;background:#fff;color:var(--on-s);cursor:pointer;outline:none;}
+.curso-item{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:border-color .15s;}
+.curso-item:hover{border-color:var(--primary-c);}
+.curso-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.curso-name{font-size:14px;font-weight:700;color:var(--on-s);flex:1;min-width:160px;}
+.curso-badges{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.curso-count{font-size:12px;font-weight:700;color:var(--primary);background:var(--on-pc);padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.badge-open{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;white-space:nowrap;}
+.badge-closed{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#fdecea;color:#c62828;border:1px solid #ef9a9a;white-space:nowrap;}
+
+/* BTN */
+.btn{padding:9px 18px;font-size:13px;font-weight:600;border-radius:var(--rsm);border:none;background:var(--primary);color:#fff;cursor:pointer;font-family:var(--fb);transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{background:var(--primary-c);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-o{background:#fff;color:var(--on-sv);border:1.5px solid var(--ov);}
+.btn-o:hover{background:var(--surf-c);}
+.btn-g{background:#1D9E75;color:#fff;}
+.btn-g:hover{background:#178a64;}
+
+/* PROGRESO */
+.prog-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:20px;}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px;}
+.prog-title{font-size:14px;font-weight:700;}
+.prog-bar-bg{height:6px;background:var(--surf-hi);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.prog-bar-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .3s ease;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--on-sv);}
+.prog-log{font-size:11.5px;color:var(--on-sv);background:var(--surf-lo);border-radius:8px;padding:10px 13px;font-family:'Courier New',monospace;max-height:150px;overflow-y:auto;margin-top:10px;display:none;line-height:1.6;}
+
+/* TABLA */
+.tbl-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.tbl-header{padding:14px 18px;border-bottom:1px solid var(--ov);display:flex;align-items:center;justify-content:space-between;background:var(--surf-lo);flex-wrap:wrap;gap:10px;}
+.tbl-title{font-size:14px;font-weight:700;}
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--surf-c);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+td{padding:11px 14px;border-top:1px solid var(--ov);vertical-align:middle;font-size:13px;color:var(--on-s);font-family:var(--fb);}
+tr:hover td{background:var(--surf-lo);}
+.td-ok{color:#2e7d32;font-weight:600;}
+.td-warn{color:#854F0B;font-weight:600;}
+.td-err{color:var(--err);font-size:11.5px;}
+.tbl-footer{padding:10px 18px;border-top:1px solid var(--ov);font-size:12px;color:var(--on-sv);font-weight:500;background:var(--surf-lo);display:flex;justify-content:space-between;align-items:center;}
+
+/* ALERT */
+.al{padding:12px 16px;border-radius:var(--rsm);font-size:13px;font-weight:500;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;}
+.al-e{background:#fdecea;border:1px solid #f5c2c2;color:var(--err);}
+.al-s{background:var(--on-pc);border:1px solid var(--primary-c);color:var(--primary);}
+.al-w{background:#fff8e1;border:1px solid #ffe082;color:#6d4c00;}
+.empty{text-align:center;padding:40px;color:var(--on-sv);font-size:13.5px;font-weight:500;}
+.sp{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* STATUS BADGES en tabla */
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.st-ok{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
+.st-warn{background:#fff8e1;color:#6d4c00;border:1px solid #ffe082;}
+.st-err{background:#fdecea;color:#c62828;border:1px solid #ef9a9a;}
+.st-proc{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;}
+.st-pend{background:var(--surf-c);color:var(--on-sv);border:1px solid var(--ov);}
+.st-sc{background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
+    <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
+  </div>
+  <div class="av">AD</div>
+</header>
+
+<div class="app-body">
+  <nav class="sb">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+      Inicio
+    </a>
+    <a class="sb-item on" href="herramientas.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
+    </a>
+    <a class="sb-item" href="configuracion.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
+    </a>
+  </nav>
+
+  <main class="main" style="max-width:1040px;">
+
+    <!-- PASO 1: LISTA DE CURSOS -->
+    <div id="step-cursos">
+      <nav class="bc">
+        <a href="herramientas.html">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Generar Pagos</span>
+      </nav>
+      <div class="ph">
+        <h1>Planilla de ventas</h1>
+        <p>Seleccioná el curso para generar la planilla combinando datos de DNI y comprobantes de pago.</p>
+      </div>
+      <div id="al-cursos"></div>
+      <div class="sort-bar">
+        <span class="sort-lbl">Ordenar:</span>
+        <button class="sort-btn on" onclick="setSortOrder('defecto',this)" id="sort-defecto">Recientes</button>
+        <button class="sort-btn" onclick="setSortOrder('nombre',this)" id="sort-nombre">A–Z</button>
+        <button class="sort-btn" onclick="setSortOrder('estado',this)" id="sort-estado">Estado</button>
+      </div>
+      <div id="curso-list" class="curso-list">
+        <div class="empty">⏳ Cargando cursos disponibles...</div>
+      </div>
+    </div>
+
+    <!-- PASO 2: PROCESAMIENTO Y TABLA -->
+    <div id="step-proceso" style="display:none">
+      <nav class="bc" id="bc-proceso">
+        <a href="herramientas.html">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <a href="#" onclick="volverCursos();return false;">Generar Pagos</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bc-nombre"></span>
+      </nav>
+      <div class="ph">
+        <h1>Planilla de ventas</h1>
+        <p id="proc-curso-nombre" style="font-weight:600;color:var(--primary)"></p>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="prog-wrap">
+        <div class="prog-header">
+          <div class="prog-title" id="proc-title">Procesando inscripciones...</div>
+        </div>
+        <div class="prog-lbl">
+          <span id="proc-txt">0 de 0</span>
+          <span id="proc-pct">0%</span>
+        </div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="proc-bar" style="width:0%"></div></div>
+        <div id="proc-errs" style="font-size:12px;color:var(--err);margin-top:6px;font-weight:600;display:none"></div>
+        <div id="proc-log" class="prog-log" style="display:block;min-height:40px">Iniciando...</div>
+      </div>
+
+      <!-- Tabla de resultados -->
+      <div id="tbl-wrap" class="tbl-wrap" style="display:none">
+        <div class="tbl-header">
+          <div class="tbl-title" id="tbl-title">Resultados</div>
+          <button class="btn btn-g" onclick="exportXLS()" style="padding:7px 14px;font-size:12.5px">⬇ Descargar .xls</button>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Apellido y nombre</th>
+                <th>Correo electrónico</th>
+                <th>Tipo inscripción</th>
+                <th>Importe</th>
+                <th>Fecha de pago</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+        <div class="tbl-footer">
+          <span id="tbl-count"></span>
+          <span id="tbl-errors" style="color:var(--err)"></span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+const FOLDER_ID  = '1AQnG88tlwQGkGYeTz3qJ_cbEEa2sV2NV';
+const NEW_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+
+// Columnas que se escriben en la planilla para registrar procesamiento
+const COL_APELLIDO_DNI = 'Apellido (DNI)';
+const COL_NOMBRE_DNI   = 'Nombre (DNI)';
+const COL_NUMERO_DNI   = 'Número DNI';
+const COL_ESTADO_DNI   = 'Estado DNI';
+
+let results     = [];
+let cursoActual = {};
+let doneCount   = 0;
+let errorCount  = 0;
+/* ── Utilidades ──────────────────────────────── */
+
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function normNombre(n) {
+  return n
+    .replace(/^\d{4}\s*[-\u2013]\s*/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g,'')
+    .trim();
+}
+
+/* ── Leyenda: Expediente + Denominación (planilla de implementación) ── */
+
+function stripAcc(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+function findCol(header) {
+  var terms = Array.prototype.slice.call(arguments, 1);
+  return header.findIndex(function(h) {
+    var n = stripAcc(h);
+    return terms.every(function(t) { return n.indexOf(stripAcc(t)) >= 0; });
+  });
+}
+function normCursoImpl(s) {
+  return stripAcc(s)
+    .replace(/^\d{4}\s*[-\u2013]\s*/i,'')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+// Busca en la planilla de implementación el curso por nombre y arma
+// la leyenda como "Expediente Denominación" (separados por un espacio).
+async function cargarLeyenda(nombreCurso) {
+  try {
+    const r = await fetch(NEW_SCRIPT_URL + '?action=getImplementacion');
+    const d = await r.json();
+    if (d.error || !d.values || d.values.length < 2) return '';
+    const header = d.values[0];
+    const rows   = d.values.slice(1);
+    const cExp   = findCol(header, 'expediente');
+    const cDenom = findCol(header, 'denominacion');
+    if (cDenom < 0) return '';
+
+    const qn = normCursoImpl(nombreCurso);
+    let row = rows.find(function(rw) { return normCursoImpl(rw[cDenom]) === qn; });
+    if (!row) {
+      row = rows.find(function(rw) {
+        const rn = normCursoImpl(rw[cDenom]);
+        return rn && qn && (rn.indexOf(qn) >= 0 || qn.indexOf(rn) >= 0);
+      });
+    }
+    if (!row) return '';
+
+    const expediente   = cExp >= 0 ? (row[cExp] || '').toString().trim() : '';
+    const denominacion = (row[cDenom] || '').toString().trim();
+    return [expediente, denominacion].filter(Boolean).join(' ');
+  } catch(e) {
+    console.warn('No se pudo obtener Expediente/Denominación:', e.message);
+    return '';
+  }
+}
+
+function normalizarFecha(f) {
+  if (!f) return '';
+  const s = f.toString().trim();
+  // Ya está en DD-MM-AAAA
+  if (/^\d{2}-\d{2}-\d{4}$/.test(s)) return s;
+  // DD/MM/AAAA
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s.replace(/\//g, '-');
+  // AAAA-MM-DD (ISO)
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return iso[3] + '-' + iso[2] + '-' + iso[1];
+  // Fecha de Google Sheets (ISO string con T)
+  const isoT = s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+  if (isoT) return isoT[3] + '-' + isoT[2] + '-' + isoT[1];
+  // DD-MM-AA (año corto)
+  const corto = s.match(/^(\d{2})-(\d{2})-(\d{2})$/);
+  if (corto) return corto[1] + '-' + corto[2] + '-20' + corto[3];
+  return s;
+}
+
+function normLeyenda(n) {
+  return (n || '')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019\u02BC\u2032]/g,'')
+    .trim();
+}
+
+function addLog(msg) {
+  console.log('[LOG]', msg);
+  const el = document.getElementById('proc-log');
+  el.style.display = 'block';
+  el.textContent = el.textContent === 'Iniciando...' ? msg : el.textContent + '\n' + msg;
+  el.scrollTop = el.scrollHeight;
+}
+
+function extractFileId(url) {
+  if (!url) return null;
+  for (const p of [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/]) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+
+
+/* ── Cargar cursos ──────────────────────────────────────── */
+
+function parseFechaInicio(fechaStr) {
+  if (!fechaStr) return -1;
+  var m = fechaStr.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (!m) return -1;
+  var dd = parseInt(m[1], 10), mm = parseInt(m[2], 10);
+  var yyyy = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (yyyy < 100) yyyy += 2000;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return -1;
+  return yyyy * 10000 + mm * 100 + dd;
+}
+function normCursoImpl(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/^\d{4}\s*[-–]\s*/,'')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/,'')
+    .replace(/\(respuestas[^)]*\)\s*$/,'').replace(/\(file responses\)\s*$/,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+async function cargarCursos() {
+  try {
+    document.getElementById('curso-list').innerHTML = '<div class="empty">⏳ Cargando cursos disponibles...</div>';
+    const res = await fetch(NEW_SCRIPT_URL + '?action=listSheets');
+    if (!res.ok) throw new Error('No se pudo conectar al servidor.');
+    const data = await res.json();
+    if (data.error) throw new Error('Error al cargar los cursos.');
+    const sheets = data.sheets || [];
+    // Renderizar primero sin conteos
+    renderCursos(sheets.map(function(s){ return Object.assign({}, s, {procesados: null, total: null}); }));
+
+    // Fechas de la planilla de implementación (para el orden "Recientes")
+    var fechaMap = {};
+    try {
+      const ri = await fetch(NEW_SCRIPT_URL + '?action=getImplementacion');
+      const di = await ri.json();
+      if (!di.error && di.values && di.values.length > 1) {
+        const hdrI = di.values[0];
+        const normI = function(h){ return (h||'').toString().trim().toLowerCase(); };
+        const cDenom = hdrI.findIndex(function(h){ return normI(h).includes('denominacion'); });
+        const cFecha = hdrI.findIndex(function(h){ return normI(h).includes('fecha'); });
+        if (cDenom >= 0 && cFecha >= 0) {
+          di.values.slice(1).forEach(function(r){ fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
+        }
+      }
+    } catch(e) {}
+
+    // Enriquecer con conteos en paralelo
+    Promise.all(sheets.map(async function(s) {
+      try {
+        const r = await fetch(NEW_SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(s.id));
+        const d = await r.json();
+        if (d.error) return Object.assign({}, s, {procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''});
+        const rows = (d.values || []).slice(1).filter(function(r){ return r && r.length > 0; });
+        const hdr = d.values && d.values[0] ? d.values[0] : [];
+        const norm = function(h){ return h ? h.toString().trim().toLowerCase().replace(/\s+/g,' ') : ''; };
+        const estadoIdx = hdr.findIndex(function(h){ return norm(h) === norm(COL_ESTADO_DNI); });
+        const total = rows.length;
+        const procesados = estadoIdx >= 0
+          ? rows.filter(function(r){ return r[estadoIdx] && r[estadoIdx].toString().trim() === 'OK'; }).length
+          : 0;
+        return Object.assign({}, s, {procesados: procesados, total: total, sheetIndex: d.sheetIndex || 0, abierto: d.formAbierto !== false, fecha: fechaMap[normCursoImpl(s.name)] || ''});
+      } catch(e) {
+        return Object.assign({}, s, {procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''});
+      }
+    })).then(function(enriched){
+      renderCursos(enriched);
+      setSortOrder('defecto', document.getElementById('sort-defecto'));
+    });
+  } catch(e) {
+    document.getElementById('al-cursos').innerHTML =
+      '<div class="al al-e">\u26a0 Error al cargar los cursos: ' + e.message + '</div>';
+    document.getElementById('curso-list').innerHTML = '';
+  }
+}
+
+var _cursosCache = [];
+var _sortOrder = 'defecto';
+function setSortOrder(order, btn) {
+  _sortOrder = order;
+  document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  sortCursos();
+}
+function sortCursos() {
+  if (!_cursosCache.length) return;
+  var sorted = _cursosCache.slice().sort(function(a, b) {
+    if (_sortOrder === 'defecto') {
+      if (a.abierto !== b.abierto) return a.abierto ? -1 : 1;
+      return parseFechaInicio(b.fecha) - parseFechaInicio(a.fecha);
+    }
+    if (_sortOrder === 'estado') {
+      if (a.abierto === b.abierto) return normNombre(a.name).localeCompare(normNombre(b.name));
+      return a.abierto ? -1 : 1;
+    }
+    return normNombre(a.name).localeCompare(normNombre(b.name));
+  });
+  renderCursos(sorted, true);
+}
+
+function renderCursos(sheets, skipCache) {
+  if (!skipCache) _cursosCache = sheets;
+  const list = document.getElementById('curso-list');
+  if (!sheets.length) { list.innerHTML = '<div class="empty">No se encontraron cursos.</div>'; return; }
+  list.innerHTML = '';
+  sheets.forEach(function(s) {
+    const nombre    = normNombre(s.name);
+    const div       = document.createElement('div');
+    div.className   = 'curso-item';
+    div.dataset.id  = s.id;
+    div.dataset.nombre = nombre;
+    div.dataset.sheetIndex = s.sheetIndex || 0;
+
+    const total      = s.total;
+    const procesados = s.procesados;
+    const cargando   = total === null || total === undefined;
+    const completo   = !cargando && total > 0 && procesados >= total;
+    const sinDatos   = !cargando && total === 0;
+
+    var progBadge;
+    if (cargando) {
+      progBadge = '<span class="curso-count" style="background:var(--surf-hi);color:var(--on-sv)">Cargando...</span>';
+    } else if (sinDatos) {
+      progBadge = '<span class="curso-count" style="background:var(--surf-hi);color:var(--on-sv)">Sin inscriptos</span>';
+    } else {
+      var color = completo ? 'background:#e8f5e9;color:#2e7d32' : 'background:var(--on-pc);color:var(--primary)';
+      progBadge = '<span class="curso-count" style="' + color + '">' + procesados + '/' + total + ' procesados</span>';
+    }
+
+    var btn;
+    if (cargando) {
+      btn = '<button class="btn" style="padding:6px 14px;font-size:12px;opacity:.5" disabled>Cargando...</button>';
+    } else if (completo) {
+      btn = '<button class="btn btn-g" style="padding:6px 14px;font-size:12px" onclick="iniciarProcesoPorDiv(this)">Ver resultados \u2192</button>';
+    } else {
+      btn = '<button class="btn" style="padding:6px 14px;font-size:12px" onclick="iniciarProcesoPorDiv(this)">Procesar \u2192</button>';
+    }
+
+    var miniBar = '';
+    if (!cargando && total > 0) {
+      var pct = Math.round(procesados / total * 100);
+      var barColor = completo ? '#2e7d32' : 'var(--primary)';
+      miniBar = '<div style="margin-top:10px"><div style="height:4px;background:var(--surf-hi);border-radius:2px;overflow:hidden">' +
+        '<div style="height:100%;width:' + pct + '%;background:' + barColor + ';border-radius:2px;transition:width .4s"></div>' +
+        '</div></div>';
+    }
+
+    div.innerHTML =
+      '<div class="curso-header">' +
+        '<div class="curso-name">' + escapeHtml(nombre) + '</div>' +
+        '<div class="curso-badges">' + progBadge + btn + '</div>' +
+      '</div>' + miniBar;
+    list.appendChild(div);
+  });
+}
+
+function iniciarProcesoPorDiv(btn) {
+  const item = btn.closest('.curso-item');
+  iniciarProceso(item.dataset.id, item.dataset.nombre, 0, parseInt(item.dataset.sheetIndex)||0);
+}
+
+function volverCursos() {
+  document.getElementById('step-proceso').style.display = 'none';
+  document.getElementById('step-cursos').style.display  = 'block';
+}
+
+/* ── Inicio del procesamiento ───────────────────────────── */
+
+async function iniciarProceso(sheetId, nombre, total, sheetIndex) {
+  window._sheetIndex = sheetIndex || 0;
+  cursoActual = { sheetId: sheetId, nombre: nombre, leyenda: '' };
+  doneCount = 0; errorCount = 0; results = [];
+
+  document.getElementById('step-cursos').style.display  = 'none';
+  document.getElementById('step-proceso').style.display = 'block';
+  document.getElementById('proc-curso-nombre').textContent = nombre;
+  document.getElementById('bc-nombre').textContent = nombre;
+  document.getElementById('proc-title').textContent = 'Procesando inscripciones...';
+  document.getElementById('tbl-wrap').style.display  = 'none';
+  document.getElementById('proc-log').textContent   = '';
+  document.getElementById('proc-log').style.display  = 'none';
+  document.getElementById('proc-errs').style.display = 'none';
+  updateProg(0, total || 1);
+
+  try {
+    addLog('Cargando planilla...');
+    const [r, leyenda] = await Promise.all([
+      fetch(NEW_SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(sheetId)),
+      cargarLeyenda(nombre)
+    ]);
+    cursoActual.leyenda = leyenda;
+    if (leyenda) addLog('Leyenda (Expediente Denominación): ' + leyenda);
+    else addLog('\u26a0 No se encontró Expediente/Denominación en la planilla de implementación; se usará el nombre del curso.');
+    const d   = await r.json();
+    const raw = Array.isArray(d) ? d : (d.values || []);
+    if (raw.length < 2) throw new Error('La planilla no tiene inscriptos.');
+
+    const hdr  = raw[0];
+    const body = raw.slice(1);
+    const norm = function(s) { return s ? s.toString().trim().toLowerCase().replace(/\s+/g,' ') : ''; };
+
+    const compIdx    = hdr.findIndex(function(h){ return norm(h).includes('comprobante') && norm(h).includes('transferencia') && !norm(h).includes('externo'); });
+    const compExtIdx = hdr.findIndex(function(h){ return norm(h).includes('comprobante') && norm(h).includes('externo'); });
+    // DNI: buscar COPIA DE DOCUMENTO DE IDENTIDAD (columna con archivo adjunto)
+    const dniIdx     = hdr.findIndex(function(h){ return norm(h).includes('copia') && (norm(h).includes('documento') || norm(h).includes('identidad')); });
+    const apIdx      = hdr.findIndex(function(h){ return norm(h).includes('apellido'); });
+    const nomIdx     = hdr.findIndex(function(h){ return norm(h).includes('nombre') && !norm(h).includes('apellido'); });
+    const emailIdx   = hdr.findIndex(function(h){ return norm(h).includes('email') || norm(h).includes('correo'); });
+    const tipoIdx    = hdr.findIndex(function(h) {
+      const hn = h ? h.toString().trim().toUpperCase() : '';
+      return hn === 'TIPO DE INSCRIPCI\u00d3N' || hn === 'TIPO DE INSCRIPCION' ||
+             (hn.includes('TIPO') && hn.includes('INSCRIPCI'));
+    });
+    // Columnas escritas por controlar_comprobantes
+    const estadoYaIdx  = hdr.findIndex(function(h){ return norm(h) === norm(COL_ESTADO_DNI); });
+    const apDniYaIdx   = hdr.findIndex(function(h){ return norm(h) === norm(COL_APELLIDO_DNI); });
+    const nomDniYaIdx  = hdr.findIndex(function(h){ return norm(h) === norm(COL_NOMBRE_DNI); });
+    const nroDniYaIdx  = hdr.findIndex(function(h){ return norm(h) === norm(COL_NUMERO_DNI); });
+    const montoYaIdx   = hdr.findIndex(function(h){ return norm(h) === 'monto comprobante'; });
+    const fechaYaIdx   = hdr.findIndex(function(h){ return norm(h) === 'fecha comprobante'; });
+    const cbuYaIdx     = hdr.findIndex(function(h){ return norm(h) === 'cbu destino'; });
+    const idTxYaIdx    = hdr.findIndex(function(h){ return norm(h) === 'id transacción' || norm(h) === 'id transaccion'; });
+
+    addLog(body.length + ' inscriptos encontrados.');
+
+    results = body.filter(function(r){ return r && r.length > 0; }).map(function(r, i) {
+      const lInt = compIdx    >= 0 ? (r[compIdx]    || '') : '';
+      const lExt = compExtIdx >= 0 ? (r[compExtIdx] || '') : '';
+      const comprobanteLink = lInt.toString().startsWith('http') ? lInt
+                            : lExt.toString().startsWith('http') ? lExt : '';
+      const dniRaw  = dniIdx >= 0 ? (r[dniIdx] || '').toString().trim() : '';
+      const dniLink = dniRaw.startsWith('http') || (dniRaw.length > 10 && !dniRaw.startsWith('0')) ? dniRaw : '';
+      const nombre  = ((apIdx >= 0 ? r[apIdx]||'' : '') + ' ' + (nomIdx >= 0 ? r[nomIdx]||'' : '')).trim();
+      const yaProc    = estadoYaIdx >= 0 && r[estadoYaIdx] && r[estadoYaIdx].toString().trim() === 'OK';
+      const apDni     = apDniYaIdx  >= 0 ? r[apDniYaIdx]?.toString().trim()  || '' : '';
+      const nomDni    = nomDniYaIdx >= 0 ? r[nomDniYaIdx]?.toString().trim() || '' : '';
+      const nroDni    = nroDniYaIdx >= 0 ? r[nroDniYaIdx]?.toString().trim() || '' : '';
+      const montoYa   = montoYaIdx  >= 0 ? r[montoYaIdx]?.toString().trim()  || '' : '';
+      const fechaYa   = normalizarFecha(fechaYaIdx >= 0 ? r[fechaYaIdx]?.toString().trim() || '' : '');
+      const idTxYa    = idTxYaIdx   >= 0 ? r[idTxYaIdx]?.toString().trim()   || '' : '';
+      // Si tiene datos de comprobante Y datos de DNI guardados, no necesita procesar
+      const tieneComp = !!(montoYa && fechaYa);
+      const tieneDNI  = !!(apDni && nroDni);
+      return {
+        idx:             i,
+        rowIdx:          i + 1,
+        nombre:          nombre,
+        email:           emailIdx >= 0 ? (r[emailIdx]||'') : '',
+        tipo:            tipoIdx  >= 0 ? (r[tipoIdx] ? r[tipoIdx].toString().trim() : '') : '',
+        comprobanteLink: comprobanteLink,
+        dniLink:         dniLink,
+        apellido_dni:    apDni,
+        nombre_dni:      nomDni,
+        dni:             nroDni,
+        importe:         montoYa,
+        fecha:           fechaYa,
+        id_transaccion:  idTxYa,
+        tieneComp:       tieneComp,
+        tieneDNI:        tieneDNI,
+        status:          (tieneComp && tieneDNI) ? 'skip' : (comprobanteLink ? 'pending' : 'sin-comprobante'),
+        nulos:           [],
+        error:           ''
+      };
+    });
+
+    const yaSkip = results.filter(function(r){ return r.status === 'skip'; }).length;
+    const yaSkipDNI = results.filter(function(r){ return r.status === 'skip-dni'; }).length;
+    if (yaSkip > 0) addLog('\u21a9 ' + yaSkip + ' inscriptos con datos completos ya guardados en planilla.');
+    if (yaSkipDNI > 0) addLog('\u21a9 ' + yaSkipDNI + ' con DNI ya procesado.');
+
+    updateProg(0, results.length);
+
+    for (let i = 0; i < results.length; i++) {
+      await procesarFila(i);
+      updateProg(doneCount + errorCount, results.length);
+      renderTabla();
+      await new Promise(function(res){ setTimeout(res, 400); });
+    }
+
+    document.getElementById('proc-title').textContent = 'Procesamiento completo';
+    document.getElementById('tbl-wrap').style.display = 'block';
+    renderTabla();
+    addLog('\u2713 Procesamiento finalizado.');
+
+  } catch(e) {
+    document.getElementById('proc-title').textContent = 'Error en el procesamiento';
+    addLog('✗ ' + e.message);
+  }
+}
+
+/* ── Procesar una fila ──────────────────────────────────── */
+
+async function procesarFila(i) {
+  const r = results[i];
+
+  if (!r.comprobanteLink) {
+    r.status = 'sin-comprobante';
+    doneCount++;
+    return;
+  }
+
+  r.status = 'processing';
+  const errores = [];
+  const nulos   = [];
+
+  /* 1. Comprobante → monto, fecha, id_transaccion (usar datos guardados si existen) */
+  if (r.tieneComp) {
+    if (!r.importe) nulos.push('importe');
+    if (!r.fecha)   nulos.push('fecha');
+  } else {
+    try {
+      const compId = extractFileId(r.comprobanteLink);
+      if (!compId) throw new Error('Comprobante sin enlace válido.');
+      const compRes = await fetch(NEW_SCRIPT_URL + '?action=processFile&fileId=' + encodeURIComponent(compId) + '&tipo=comprobante_simple');
+      if (!compRes.ok) throw new Error('No se pudo acceder al comprobante.');
+      const compData = await compRes.json();
+      if (compData.error) throw new Error('Error al procesar comprobante: ' + compData.error);
+      const parsed = compData.result;
+      r.importe        = parsed.monto          || '';
+      r.fecha          = normalizarFecha(parsed.fecha || '');
+      r.id_transaccion = parsed.id_transaccion || '';
+      if (!r.importe) nulos.push('importe');
+      if (!r.fecha)   nulos.push('fecha');
+    } catch(e) {
+      errores.push('Comprobante: ' + e.message);
+    }
+  }
+
+  /* 2. DNI → apellido, nombre, dni (usar datos guardados si existen) */
+  if (r.tieneDNI) {
+  } else if (r.dniLink) {
+    try {
+      const dniRaw = r.dniLink.toString().trim();
+      const dniId  = dniRaw.startsWith('http') ? extractFileId(dniRaw) : dniRaw;
+      if (!dniId) throw new Error('DNI sin enlace válido.');
+      const dniRes = await fetch(NEW_SCRIPT_URL + '?action=processFile&fileId=' + encodeURIComponent(dniId) + '&tipo=dni_simple');
+      if (!dniRes.ok) throw new Error('No se pudo acceder al DNI.');
+      const dniData = await dniRes.json();
+      if (dniData.error) throw new Error('Error al procesar DNI: ' + dniData.error);
+      const dp = dniData.result;
+      r.apellido_dni = dp.apellido || '';
+      r.nombre_dni   = dp.nombre   || '';
+      r.dni          = dp.dni      || '';
+    } catch(e) {
+      errores.push('DNI: ' + e.message);
+    }
+  }
+
+  /* Estado final */
+  r.nulos = nulos;
+  if (errores.length > 0) {
+    r.error  = errores.join(' | ');
+    r.status = 'error';
+    errorCount++;
+    const errEl = document.getElementById('proc-errs');
+    errEl.style.display = 'block';
+    errEl.textContent   = errorCount + ' comprobante' + (errorCount > 1 ? 's' : '') + ' con error';
+    addLog('\u2717 ' + r.nombre + ': ' + r.error);
+  } else {
+    r.status = nulos.length > 0 ? 'nulos' : 'ok';
+    doneCount++;
+    const nm = r.apellido_dni ? r.apellido_dni + ', ' + r.nombre_dni : r.nombre;
+    addLog('\u2713 ' + nm + ' \u2014 $' + (r.importe||'?') + ' \u2014 ' + (r.fecha||'sin fecha') + (nulos.length ? ' \u26a0 nulos: ' + nulos.join(', ') : ''));
+    // Guardar DNI en planilla si fue extraído
+    if (r.apellido_dni || r.nombre_dni || r.dni) {
+      guardarDNIEnPlanilla(r);
+    }
+  }
+}
+
+async function guardarDNIEnPlanilla(r) {
+  const si   = window._sheetIndex || 0;
+  const sheetId = cursoActual.sheetId;
+  const base = NEW_SCRIPT_URL + '?action=saveColumna&sheetId=' + encodeURIComponent(sheetId) + '&rowIdx=' + r.rowIdx + '&sheetIndex=' + si;
+  const saves = [
+    { col: COL_APELLIDO_DNI, val: r.apellido_dni || '' },
+    { col: COL_NOMBRE_DNI,   val: r.nombre_dni   || '' },
+    { col: COL_NUMERO_DNI,   val: r.dni          || '' },
+    { col: COL_ESTADO_DNI,   val: 'OK'                 }
+  ];
+  for (const s of saves) {
+    try {
+      await fetch(base + '&colName=' + encodeURIComponent(s.col) + '&value=' + encodeURIComponent(s.val));
+    } catch(e) {
+      console.warn('Error guardando DNI en planilla:', e.message);
+    }
+  }
+}
+
+/* ── Progreso ───────────────────────────────────────────── */
+
+function updateProg(done, total) {
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('proc-txt').textContent  = done + ' de ' + total + ' procesados';
+  document.getElementById('proc-pct').textContent  = pct + '%';
+  document.getElementById('proc-bar').style.width  = pct + '%';
+}
+
+/* ── Tabla de resultados ────────────────────────────────── */
+
+function renderTabla() {
+  const body = document.getElementById('tbl-body');
+  body.innerHTML = results.map(function(r, i) {
+    const nombreMostrar = r.apellido_dni
+      ? r.apellido_dni + ', ' + r.nombre_dni
+      : (r.nombre || '\u2014');
+    let stBadge;
+    if      (r.status === 'ok')               stBadge = '<span class="st st-ok">\u2713 OK</span>';
+    else if (r.status === 'nulos')            stBadge = '<span class="st st-warn">\u26a0 Nulos: ' + r.nulos.join(', ') + '</span>';
+    else if (r.status === 'error')            stBadge = '<span class="st st-err">\u2717 Error</span>';
+    else if (r.status === 'processing')       stBadge = '<span class="st st-proc">\u23f3 Procesando\u2026</span>';
+    else if (r.status === 'sin-comprobante')  stBadge = '<span class="st st-sc">Sin comprobante</span>';
+    else if (r.status === 'skip-dni')         stBadge = '<span class="st st-proc">\u21a9 DNI ya procesado</span>';
+    else if (r.status === 'skip')             stBadge = '<span class="st st-ok">\u21a9 Datos ya guardados</span>';
+    else                                      stBadge = '<span class="st st-pend">\u2014 Pendiente</span>';
+    const errorRow = r.error ? '<div class="td-err" style="margin-top:3px">' + r.error + '</div>' : '';
+    const imp = r.importe ? '$' + Math.round(parseFloat(r.importe)).toLocaleString('es-AR') : '\u2014';
+    return '<tr>' +
+      '<td style="color:var(--on-sv)">' + (i+1) + '</td>' +
+      '<td style="font-weight:500">' + nombreMostrar + '</td>' +
+      '<td style="color:var(--on-sv)">' + (r.email||'\u2014') + '</td>' +
+      '<td>' + (r.tipo||'\u2014') + '</td>' +
+      '<td>' + imp + '</td>' +
+      '<td>' + (r.fecha||'\u2014') + '</td>' +
+      '<td>' + stBadge + errorRow + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const ok   = results.filter(function(r){ return r.status==='ok'; }).length;
+  const warn = results.filter(function(r){ return r.status==='nulos'; }).length;
+  const err  = results.filter(function(r){ return r.status==='error'; }).length;
+  const sc   = results.filter(function(r){ return r.status==='sin-comprobante'; }).length;
+
+  document.getElementById('tbl-count').textContent =
+    results.length + ' inscriptos \u00b7 ' + ok + ' OK';
+  document.getElementById('tbl-errors').textContent =
+    [warn>0 ? warn+' con datos nulos' : '', err>0 ? err+' con error' : '', sc>0 ? sc+' sin comprobante' : '']
+    .filter(Boolean).join(' \u00b7 ');
+  document.getElementById('tbl-title').textContent =
+    'Comprobantes \u2014 ' + cursoActual.nombre;
+}
+
+/* ── Exportar XLS ───────────────────────────────────────── */
+
+function exportXLS() {
+  var cols = [
+    'concepto_venta','cliente_apellido','cliente_nombre','cliente_dni',
+    'cliente_calle','cliente_numero','cliente_piso','cliente_depto',
+    'cliente_cp','cliente_cp_desc','cliente_email','forma_pago',
+    'leyenda','importe_cobrado','medio_pago','cliente_tipo_doc',
+    'condicion_fiscal','fecha_pago','id_transaccion',
+    'pagador_nombres','pagador_apellido','pagador_razon_social',
+    'pagador_numero_doc','pagador_tipo_doc','pagador_domicilio'
+  ];
+
+  var leyenda = cursoActual.leyenda || normLeyenda(cursoActual.nombre);
+
+  /* Solo registros CON importe_cobrado */
+  var incluidos = results.filter(function(r){ return r.importe && r.importe.toString().trim() !== ''; });
+
+  /* Registros excluidos: sin importe, sin comprobante o con error */
+  var excluidos = results.filter(function(r){ return !r.importe || r.importe.toString().trim() === ''; });
+
+  var rows = incluidos.map(function(r) {
+    return {
+      concepto_venta:       'POSGCUR-CO',
+      cliente_apellido:     r.apellido_dni  || '',
+      cliente_nombre:       r.nombre_dni    || '',
+      cliente_dni:          r.dni           || '',
+      cliente_calle:        '',
+      cliente_numero:       '',
+      cliente_piso:         '',
+      cliente_depto:        '',
+      cliente_cp:           '',
+      cliente_cp_desc:      '',
+      cliente_email:        r.email         || '',
+      forma_pago:           'total',
+      leyenda:              leyenda,
+      importe_cobrado:      r.importe ? parseFloat(r.importe) : '',
+      medio_pago:           '13',
+      cliente_tipo_doc:     'DNI',
+      condicion_fiscal:     '5',
+      fecha_pago:           normalizarFecha(r.fecha || ''),
+      id_transaccion:       r.id_transaccion|| '',
+      pagador_nombres:      '',
+      pagador_apellido:     '',
+      pagador_razon_social: '',
+      pagador_numero_doc:   '',
+      pagador_tipo_doc:     '',
+      pagador_domicilio:    ''
+    };
+  });
+
+  var wb = XLSX.utils.book_new();
+
+  /* Única hoja: Sheet1 — solo registros con importe cobrado */
+  var ws = XLSX.utils.json_to_sheet(rows, {header: cols});
+  ws['!cols'] = [
+    {wch:14},{wch:22},{wch:22},{wch:14},
+    {wch:20},{wch:10},{wch:8},{wch:8},
+    {wch:10},{wch:16},{wch:32},{wch:10},
+    {wch:36},{wch:14},{wch:10},{wch:14},
+    {wch:14},{wch:14},{wch:20},
+    {wch:20},{wch:20},{wch:24},
+    {wch:16},{wch:14},{wch:24}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+  XLSX.writeFile(wb, 'Ventas-' + (leyenda||'planilla') + '.xls', {bookType:'xls'});
+}
+
+window.onload = cargarCursos;
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;
+  --on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;--err:#ba1a1a;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3{font-family:var(--fh);}
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+.app-body{display:flex;flex:1;overflow:hidden;}
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.main{flex:1;overflow-y:auto;padding:32px 28px;}
+.wrap{max-width:760px;}
+.ph h1{font-size:26px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);margin-bottom:22px;}
+.card{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:22px;box-shadow:var(--sh);margin-bottom:16px;}
+.card h3{font-size:14.5px;margin-bottom:4px;}
+.card p.desc{font-size:12.5px;color:var(--on-sv);margin-bottom:16px;line-height:1.5;}
+.status{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:var(--surf-lo);font-size:12.5px;margin-bottom:14px;}
+.status.ok{background:#e8f5e9;color:#1b5e20;}
+.status a{color:var(--primary);font-weight:700;text-decoration:none;margin-left:auto;}
+.status a:hover{text-decoration:underline;}
+.drop{border:2px dashed var(--ov);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;transition:all .15s;}
+.drop:hover,.drop.over{border-color:var(--primary-c);background:var(--surf-lo);}
+.drop input{display:none;}
+.row{display:flex;gap:8px;}
+input[type=text]{flex:1;font-family:var(--fb);font-size:13px;padding:9px 11px;border:1px solid var(--ov);border-radius:8px;}
+.btn{background:var(--primary);color:#fff;border:none;border-radius:var(--rsm);padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);white-space:nowrap;}
+.btn:hover{background:var(--primary-c);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.msg{font-size:12.5px;margin-top:10px;}
+.msg.err{color:var(--err);}
+.msg.ok{color:#1b5e20;}
+.help{font-size:11.5px;color:var(--on-sv);margin-top:10px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
+  <div class="av">AD</div>
+</header>
+
+<div class="app-body">
+  <nav class="sb">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Inicio
+    </a>
+    <a class="sb-item" href="herramientas.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
+    </a>
+    <a class="sb-item on" href="configuracion.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
+    </a>
+  </nav>
+
+  <main class="main">
+    <div class="wrap">
+      <div class="ph">
+        <h1>Configuración</h1>
+        <p>Ajustes generales de la app.</p>
+      </div>
+
+      <div class="card">
+        <h3>Plantilla de constancia</h3>
+        <p class="desc">El documento Word (.docx) que se usa como base para generar las constancias de curso aprobado. Al subirla se convierte automáticamente a Google Docs.</p>
+
+        <div id="plantilla-status" class="status">Cargando estado...</div>
+
+        <div class="drop" id="drop-plantilla">
+          <input type="file" id="fileInput" accept=".docx,.doc,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword">
+          <div id="drop-txt">📄 Arrastrá el .docx de la plantilla acá, o hacé click para elegirlo</div>
+        </div>
+        <div class="msg" id="msg-plantilla"></div>
+        <div class="help">La plantilla debe tener los campos {{NOMBRE_COMPLETO}}, {{DNI}}, {{FRASE_RESULTADO}} y {{FECHA_EMISION}}. {{FRASE_RESULTADO}} es la oración completa (aprobó / asistió, curso, docente, fechas y duración): se arma sola, no hace falta escribir esos datos por separado.<br><br>
+        <b>Importante:</b> subí el documento ya con el <b>logo de la institución</b>, la <b>firma del/la Secretario/a</b> y el <b>sello institucional</b> puestos directamente como imágenes en el Word — la conversión automática a Google Docs no siempre las conserva bien. Si después de subirla notás que alguna imagen no se ve bien o quedó movida, lo más simple es abrir la plantilla directo en Google Drive (botón "Ver ↗" de arriba) y ajustarla ahí a mano — queda guardado para todas las constancias siguientes, sin tener que volver a subir el archivo.<br>
+        Nota: la conversión automática a Google Docs requiere que el proyecto de Apps Script tenga habilitado el servicio avanzado "Google Drive API" (Editor → Servicios → +).</div>
+      </div>
+
+      <div class="card">
+        <h3>Carpeta de constancias</h3>
+        <p class="desc">Carpeta de Drive donde se van a guardar los PDF de las constancias generadas.</p>
+
+        <div id="carpeta-status" class="status">Cargando estado...</div>
+
+        <div class="row">
+          <input type="text" id="carpetaInput" placeholder="Pegá el link o el ID de la carpeta de Drive">
+          <button class="btn" onclick="guardarCarpeta()" id="btnCarpeta">Guardar</button>
+        </div>
+        <div class="msg" id="msg-carpeta"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+
+function esc(s){ return (s??'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function cargarConfig() {
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getConfigConstancias`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    const pStatus = document.getElementById('plantilla-status');
+    if (d.plantillaId) {
+      pStatus.className = 'status ok';
+      pStatus.innerHTML = `✓ Configurada: ${esc(d.plantillaNombre)} <a href="${d.plantillaUrl}" target="_blank">Ver ↗</a>`;
+    } else {
+      pStatus.className = 'status';
+      pStatus.textContent = '— Todavía no subiste una plantilla.';
+    }
+
+    const cStatus = document.getElementById('carpeta-status');
+    if (d.carpetaId) {
+      cStatus.className = 'status ok';
+      cStatus.innerHTML = `✓ Configurada: ${esc(d.carpetaNombre)} <a href="${d.carpetaUrl}" target="_blank">Ver ↗</a>`;
+      document.getElementById('carpetaInput').value = d.carpetaId;
+    } else {
+      cStatus.className = 'status';
+      cStatus.textContent = '— Todavía no configuraste la carpeta.';
+    }
+  } catch(e) {
+    document.getElementById('plantilla-status').textContent = 'Error: ' + e.message;
+    document.getElementById('carpeta-status').textContent = 'Error: ' + e.message;
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+const drop = document.getElementById('drop-plantilla');
+const fileInput = document.getElementById('fileInput');
+drop.onclick = () => fileInput.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) subirPlantilla(e.dataTransfer.files[0]); };
+fileInput.onchange = () => { if (fileInput.files[0]) subirPlantilla(fileInput.files[0]); };
+
+async function subirPlantilla(file) {
+  const msg = document.getElementById('msg-plantilla');
+  document.getElementById('drop-txt').textContent = '📄 ' + file.name;
+  msg.className = 'msg'; msg.textContent = 'Subiendo y convirtiendo a Google Docs...';
+  try {
+    const base64 = await fileToBase64(file);
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'subirPlantillaConstancia', base64, mimeType: file.type, nombre: 'Plantilla Constancia' })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    msg.className = 'msg ok'; msg.textContent = '✓ Plantilla guardada correctamente.';
+    cargarConfig();
+  } catch(e) {
+    msg.className = 'msg err'; msg.textContent = '✗ ' + e.message;
+  }
+}
+
+async function guardarCarpeta() {
+  const val = document.getElementById('carpetaInput').value.trim();
+  const msg = document.getElementById('msg-carpeta');
+  const btn = document.getElementById('btnCarpeta');
+  if (!val) { msg.className = 'msg err'; msg.textContent = 'Pegá un link o ID de carpeta.'; return; }
+  btn.disabled = true;
+  msg.className = 'msg'; msg.textContent = 'Guardando...';
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'guardarCarpetaConstancias', carpeta: val })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    msg.className = 'msg ok'; msg.textContent = '✓ Carpeta guardada correctamente.';
+    cargarConfig();
+  } catch(e) {
+    msg.className = 'msg err'; msg.textContent = '✗ ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+cargarConfig();
+</script>
+</body>
+</html>

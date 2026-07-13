@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controlar títulos — Posgrado UACO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
+  --surf:#f9f9f8;--surf-lo:#f3f4f2;--surf-c:#eeeeed;--surf-hi:#e8e8e7;
+  --on-s:#1a1c1b;--on-sv:#404847;--ov:#c0c8c6;--err:#ba1a1a;
+  --fh:'Public Sans',sans-serif;--fb:'Inter',sans-serif;
+  --r:12px;--rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --shm:0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:var(--surf);color:var(--on-s);display:flex;flex-direction:column;}
+h1,h2,h3,h4{font-family:var(--fh);}
+.hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
+.hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
+.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+.app-body{display:flex;flex:1;overflow:hidden;}
+.sb{width:220px;background:#fff;border-right:1px solid var(--ov);display:flex;flex-direction:column;flex-shrink:0;padding:16px 10px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;color:var(--on-sv);cursor:pointer;text-decoration:none;transition:all .15s;margin-bottom:2px;}
+.sb-item:hover{background:var(--surf-c);color:var(--on-s);}
+.sb-item.on{background:var(--on-pc);color:var(--primary);font-weight:600;}
+.sb-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.main{flex:1;overflow-y:auto;padding:32px 28px;}
+.ph{margin-bottom:24px;}
+.ph h1{font-size:28px;font-weight:900;letter-spacing:-.02em;margin-bottom:5px;}
+.ph p{font-size:13.5px;color:var(--on-sv);line-height:1.6;}
+.bc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--on-sv);margin-bottom:20px;flex-wrap:wrap;}
+.bc a{color:var(--primary);font-weight:600;text-decoration:none;}
+.bc a:hover{text-decoration:underline;}
+.bc-sep{color:var(--ov);}
+.bc-cur{font-weight:600;color:var(--on-s);}
+.curso-list{display:flex;flex-direction:column;gap:10px;}
+.sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-lbl{font-size:12px;font-weight:600;color:var(--on-sv);}
+.sort-btn{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1.5px solid var(--ov);background:#fff;color:var(--on-sv);cursor:pointer;font-family:var(--fb);transition:all .15s;}
+.sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+.sort-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
+.sort-bar label{font-size:13px;font-weight:600;color:var(--on-s);white-space:nowrap;}
+.sort-bar select{font-size:13px;padding:5px 10px;border:1px solid var(--ov);border-radius:6px;background:#fff;color:var(--on-s);cursor:pointer;outline:none;}
+.curso-item{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:border-color .15s;}
+.curso-item:hover{border-color:var(--primary-c);}
+.curso-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.curso-name{font-size:14px;font-weight:700;color:var(--on-s);flex:1;min-width:160px;}
+.curso-badges{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.curso-count{font-size:12px;font-weight:700;color:var(--primary);background:var(--on-pc);padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.btn{padding:9px 18px;font-size:13px;font-weight:600;border-radius:var(--rsm);border:none;background:var(--primary);color:#fff;cursor:pointer;font-family:var(--fb);transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px;}
+.btn:hover{background:var(--primary-c);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-g{background:#1D9E75;color:#fff;}
+.btn-g:hover{background:#178a64;}
+.prog-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:20px;}
+.prog-title{font-size:14px;font-weight:700;margin-bottom:12px;}
+.prog-bar-bg{height:6px;background:var(--surf-hi);border-radius:3px;overflow:hidden;margin-bottom:6px;}
+.prog-bar-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .3s;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--on-sv);margin-bottom:6px;}
+.prog-log{font-size:12px;color:var(--on-sv);background:var(--surf-lo);border-radius:8px;padding:10px 13px;font-family:'Courier New',monospace;max-height:100px;overflow-y:auto;margin-top:8px;line-height:1.6;}
+.tbl-wrap{background:#fff;border:1px solid var(--ov);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.tbl-hdr{padding:14px 18px;border-bottom:1px solid var(--ov);display:flex;align-items:center;justify-content:space-between;background:var(--surf-lo);flex-wrap:wrap;gap:10px;}
+.tbl-hdr-title{font-size:14px;font-weight:700;}
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--surf-c);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+td{padding:11px 14px;border-top:1px solid var(--ov);font-size:13px;color:var(--on-s);vertical-align:middle;font-family:var(--fb);}
+tr:hover td{background:var(--surf-lo);}
+.tbl-footer{padding:10px 18px;border-top:1px solid var(--ov);font-size:12px;color:var(--on-sv);font-weight:500;background:var(--surf-lo);display:flex;justify-content:space-between;}
+.al{padding:12px 16px;border-radius:var(--rsm);font-size:13px;font-weight:500;margin-bottom:14px;}
+.al-e{background:#fdecea;border:1px solid #f5c2c2;color:var(--err);}
+.empty{text-align:center;padding:40px;color:var(--on-sv);font-size:13.5px;font-weight:500;}
+.tag-ok{color:#2e7d32;font-weight:600;}
+.tag-skip{color:#1565c0;font-weight:600;}
+.tag-err{color:var(--err);font-weight:600;}
+.tag-sc{color:var(--on-sv);}
+.tag-proc{color:#6d4c00;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
+  <div class="av">AD</div>
+</header>
+
+<div class="app-body">
+  <nav class="sb">
+    <a class="sb-item" href="index.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>Inicio
+    </a>
+    <a class="sb-item on" href="herramientas.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
+    </a>
+    <a class="sb-item" href="configuracion.html">
+      <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
+    </a>
+  </nav>
+
+  <main class="main" style="max-width:1000px">
+
+    <!-- PASO 1: CURSOS -->
+    <div id="step-cursos">
+      <nav class="bc">
+        <a href="herramientas.html">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Controlar títulos</span>
+      </nav>
+      <div class="ph">
+        <h1>Controlar títulos</h1>
+        <p>Seleccioná el curso para procesar los títulos de grado con IA.</p>
+      </div>
+      <div id="al-cursos"></div>
+      <div class="sort-bar">
+        <span class="sort-lbl">Ordenar:</span>
+        <button class="sort-btn on" onclick="setSortOrder('defecto',this)" id="sort-defecto">Recientes</button>
+        <button class="sort-btn" onclick="setSortOrder('nombre',this)" id="sort-nombre">A–Z</button>
+        <button class="sort-btn" onclick="setSortOrder('estado',this)" id="sort-estado">Estado</button>
+      </div>
+      <div id="curso-list" class="curso-list">
+        <div class="empty">⏳ Cargando cursos disponibles...</div>
+      </div>
+    </div>
+
+    <!-- PASO 2: PROCESAMIENTO -->
+    <div id="step-proceso" style="display:none">
+      <nav class="bc">
+        <a href="herramientas.html">Herramientas</a>
+        <span class="bc-sep">›</span>
+        <a href="#" onclick="volverCursos();return false;">Controlar títulos</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur" id="bc-nombre-ct"></span>
+      </nav>
+      <div class="ph">
+        <h1>Controlar títulos</h1>
+        <p id="proc-nombre" style="font-weight:600;color:var(--primary)"></p>
+      </div>
+
+      <div class="prog-wrap">
+        <div class="prog-title" id="proc-title">Cargando planilla...</div>
+        <div class="prog-lbl"><span id="proc-txt">0 de 0</span><span id="proc-pct">0%</span></div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="proc-bar" style="width:0%"></div></div>
+        <div id="proc-errs" style="font-size:12px;color:var(--err);margin-top:6px;font-weight:600;display:none"></div>
+        <div id="proc-log" class="prog-log">Iniciando...</div>
+      </div>
+
+      <div id="tbl-wrap" class="tbl-wrap" style="display:none">
+        <div class="tbl-hdr">
+          <div class="tbl-hdr-title" id="tbl-title">Resultados</div>
+          <button class="btn btn-g" style="padding:7px 14px;font-size:12.5px" onclick="exportXLS()">⬇ Descargar .xls</button>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th>
+              <th>Apellido y nombre</th>
+              <th>Nombre y apellido (título)</th>
+              <th>Carrera</th>
+              <th>Universidad</th>
+              <th>Estado</th>
+            </tr></thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+        <div class="tbl-footer">
+          <span id="tbl-count"></span>
+          <span id="tbl-errors" style="color:var(--err)"></span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcrHMjhU14gyCz46QNTmfXcktckjfhu9TBRJLgkOyacbtCtEYp-cVcgD_jyb1tR7p0KQ/exec';
+
+const COL_NOMBRE_TIT = 'Nombre y apellido (titulo)';
+const COL_CARRERA    = 'Carrera';
+const COL_UNIVERSIDAD = 'Universidad';
+const COL_ESTADO     = 'Estado titulo';
+
+let results = [];
+let cursoActual = {};
+let apiKey = '';
+let sheetIdActual = '';
+let doneCount = 0, errorCount = 0;
+
+function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
+
+function normNombre(n) {
+  return n.replace(/^\d{4}\s*[-–]\s*/i,'')
+    .replace(/\s*\(File responses\)\s*$/i,'')
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
+    .replace(/\s*\(respuestas\)\s*$/i,'')
+    .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g,'')
+    .trim();
+}
+
+function addLog(msg) {
+  const el = document.getElementById('proc-log');
+  el.textContent = el.textContent === 'Iniciando...' ? msg : el.textContent + '\n' + msg;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProg(done, total) {
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('proc-bar').style.width = pct + '%';
+  document.getElementById('proc-txt').textContent = `${done} de ${total} procesados`;
+  document.getElementById('proc-pct').textContent = pct + '%';
+}
+
+function extractFileId(url) {
+  if (!url) return null;
+  const s = url.toString().trim();
+  if (!s.startsWith('http') && s.length > 10) return s;
+  for (const p of [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/]) {
+    const m = s.match(p); if (m) return m[1];
+  }
+  return null;
+}
+
+// ── Cargar cursos ──────────────────────────────────────────
+function parseFechaInicio(fechaStr) {
+  if (!fechaStr) return -1;
+  const m = fechaStr.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (!m) return -1;
+  const dd = parseInt(m[1], 10), mm = parseInt(m[2], 10);
+  let yyyy = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (yyyy < 100) yyyy += 2000;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return -1;
+  return yyyy * 10000 + mm * 100 + dd;
+}
+function normCursoImpl(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/^\d{4}\s*[-–]\s*/,'')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/,'')
+    .replace(/\(respuestas[^)]*\)\s*$/,'').replace(/\(file responses\)\s*$/,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+async function cargarCursos() {
+  try {
+    document.getElementById('curso-list').innerHTML = '<div class="empty">⏳ Cargando cursos disponibles...</div>';
+    const res = await fetch(`${SCRIPT_URL}?action=listSheets`);
+    const data = await res.json();
+    if (data.error) throw new Error('No se pudo conectar al servidor.');
+    const sheets = data.sheets || [];
+    renderCursos(sheets.map(s => ({...s, procesados: null, total: null})));
+
+    // Fechas de la planilla de implementación (para el orden "Recientes")
+    let fechaMap = {};
+    try {
+      const ri = await fetch(`${SCRIPT_URL}?action=getImplementacion`);
+      const di = await ri.json();
+      if (!di.error && di.values && di.values.length > 1) {
+        const hdr = di.values[0];
+        const norm = h => (h||'').toString().trim().toLowerCase();
+        const cDenom = hdr.findIndex(h => norm(h).includes('denominacion'));
+        const cFecha = hdr.findIndex(h => norm(h).includes('fecha'));
+        if (cDenom >= 0 && cFecha >= 0) {
+          di.values.slice(1).forEach(r => { fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
+        }
+      }
+    } catch(e) {}
+
+    // Enriquecer con conteos en paralelo
+    const enriched = await Promise.all(sheets.map(async s => {
+      try {
+        const r = await fetch(`${SCRIPT_URL}?action=getSheet&sheetId=${encodeURIComponent(s.id)}`);
+        const d = await r.json();
+        if (d.error) return {...s, procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''};
+        const rows = (d.values || []).slice(1).filter(r => r && r.length > 0);
+        const hdr = d.values?.[0] || [];
+        const norm = h => h?.toString().trim().toLowerCase().replace(/\s+/g,' ');
+        const estadoIdx = hdr.findIndex(h => norm(h) === norm(COL_ESTADO));
+        const total = rows.length;
+        const procesados = estadoIdx >= 0
+          ? rows.filter(r => r[estadoIdx]?.toString().trim() === 'OK').length
+          : 0;
+        return {...s, procesados, total, sheetIndex: d.sheetIndex || 0, abierto: d.formAbierto !== false, fecha: fechaMap[normCursoImpl(s.name)] || ''};
+      } catch(e) {
+        return {...s, procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''};
+      }
+    }));
+    renderCursos(enriched);
+    setSortOrder('defecto', document.getElementById('sort-defecto'));
+  } catch(e) {
+    document.getElementById('al-cursos').innerHTML = `<div class="al al-e">⚠ Error: ${e.message}</div>`;
+    document.getElementById('curso-list').innerHTML = '';
+  }
+}
+
+let _cursosCache = [];
+let _sortOrder = 'defecto';
+function setSortOrder(order, btn) {
+  _sortOrder = order;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  sortCursos();
+}
+function sortCursos() {
+  if (!_cursosCache.length) return;
+  const sorted = [..._cursosCache].sort((a, b) => {
+    if (_sortOrder === 'defecto') {
+      if (a.abierto !== b.abierto) return a.abierto ? -1 : 1;
+      return parseFechaInicio(b.fecha) - parseFechaInicio(a.fecha);
+    }
+    if (_sortOrder === 'estado') {
+      if (a.abierto === b.abierto) return normNombre(a.name).localeCompare(normNombre(b.name));
+      return a.abierto ? -1 : 1;
+    }
+    return normNombre(a.name).localeCompare(normNombre(b.name));
+  });
+  renderCursos(sorted, true);
+}
+
+function renderCursos(sheets, skipCache) {
+  if (!skipCache) _cursosCache = sheets;
+  const list = document.getElementById('curso-list');
+  if (!sheets.length) { list.innerHTML = '<div class="empty">No se encontraron cursos.</div>'; return; }
+  list.innerHTML = '';
+  sheets.forEach(s => {
+    const nombre = normNombre(s.name);
+    const div = document.createElement('div');
+    div.className = 'curso-item';
+    div.dataset.id = s.id;
+    div.dataset.nombre = nombre;
+    div.dataset.sheetIndex = s.sheetIndex || 0;
+
+    const total = s.total;
+    const procesados = s.procesados;
+    const cargando = total === null;
+    const completo = !cargando && total > 0 && procesados >= total;
+    const sinDatos = !cargando && total === 0;
+
+    let progBadge = '';
+    if (cargando) {
+      progBadge = '<span class="curso-count" style="background:var(--surf-hi);color:var(--on-sv)">Cargando...</span>';
+    } else if (sinDatos) {
+      progBadge = '<span class="curso-count" style="background:var(--surf-hi);color:var(--on-sv)">Sin inscriptos</span>';
+    } else {
+      const color = completo ? 'background:#e8f5e9;color:#2e7d32' : 'background:var(--on-pc);color:var(--primary)';
+      progBadge = `<span class="curso-count" style="${color}">${procesados}/${total} procesados</span>`;
+    }
+
+    let btn = '';
+    if (cargando) {
+      btn = '<button class="btn" style="padding:6px 14px;font-size:12px;opacity:.5" disabled>Cargando...</button>';
+    } else if (completo) {
+      btn = '<button class="btn btn-g" style="padding:6px 14px;font-size:12px" onclick="iniciarProcesoPorDiv(this)">Ver resultados →</button>';
+    } else {
+      btn = '<button class="btn" style="padding:6px 14px;font-size:12px" onclick="iniciarProcesoPorDiv(this)">Procesar →</button>';
+    }
+
+    let miniBar = '';
+    if (!cargando && total > 0) {
+      const pct = Math.round(procesados / total * 100);
+      const barColor = completo ? '#2e7d32' : 'var(--primary)';
+      miniBar = `<div style="margin-top:10px">
+        <div style="height:4px;background:var(--surf-hi);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px;transition:width .4s"></div>
+        </div>
+      </div>`;
+    }
+
+    div.innerHTML = `
+      <div class="curso-header">
+        <div class="curso-name">${nombre}</div>
+        <div class="curso-badges">${progBadge}${btn}</div>
+      </div>${miniBar}`;
+    list.appendChild(div);
+  });
+}
+
+function iniciarProcesoPorDiv(btn) {
+  const item = btn.closest('.curso-item');
+  iniciarProceso(item.dataset.id, item.dataset.nombre, parseInt(item.dataset.sheetIndex)||0);
+}
+
+function volverCursos() {
+  document.getElementById('step-proceso').style.display = 'none';
+  document.getElementById('step-cursos').style.display = 'block';
+}
+
+// ── Iniciar procesamiento ──────────────────────────────────
+async function iniciarProceso(sheetId, nombre, sheetIndex) {
+  apiKey = getApiKey();
+  if (!apiKey) {
+    document.getElementById('al-cursos').innerHTML = `<div class="al al-e">⚠ No se encontró la API Key. Configurala desde la página principal.</div>`;
+    return;
+  }
+
+  sheetIdActual = sheetId;
+  window._sheetIndex = sheetIndex || 0;
+  cursoActual = { sheetId, nombre };
+  doneCount = 0; errorCount = 0; results = [];
+
+  document.getElementById('step-cursos').style.display = 'none';
+  document.getElementById('step-proceso').style.display = 'block';
+  document.getElementById('proc-nombre').textContent = nombre;
+  document.getElementById('bc-nombre-ct').textContent = nombre;
+  document.getElementById('proc-title').textContent = 'Cargando planilla...';
+  document.getElementById('tbl-wrap').style.display = 'none';
+  document.getElementById('proc-log').textContent = 'Iniciando...';
+  document.getElementById('proc-errs').style.display = 'none';
+  setProg(0, 1);
+
+  try {
+    const r = await fetch(`${SCRIPT_URL}?action=getSheet&sheetId=${encodeURIComponent(sheetId)}`);
+    const d = await r.json();
+    if (d.error) throw new Error('No se pudo leer la planilla.');
+    window._sheetIndex = d.sheetIndex || sheetIndex || 0;
+    const raw = d.values || [];
+    if (raw.length < 2) throw new Error('La planilla no tiene inscriptos.');
+
+    const [hdr, ...body] = raw;
+    const norm = s => s?.toString().trim().toLowerCase().replace(/\s+/g,' ');
+
+    const apIdx      = hdr.findIndex(h => norm(h).includes('apellido'));
+    const nomIdx     = hdr.findIndex(h => norm(h).includes('nombre') && !norm(h).includes('apellido'));
+    const tituloIdx  = hdr.findIndex(h => norm(h).includes('copia') && norm(h).includes('título') || norm(h).includes('copia') && norm(h).includes('titulo'));
+    const estadoYaIdx = hdr.findIndex(h => norm(h) === norm(COL_ESTADO));
+    const nomTitYaIdx = hdr.findIndex(h => norm(h) === norm(COL_NOMBRE_TIT));
+    const carreraYaIdx = hdr.findIndex(h => norm(h) === norm(COL_CARRERA));
+    const univYaIdx   = hdr.findIndex(h => norm(h) === norm(COL_UNIVERSIDAD));
+
+    addLog(`${body.length} inscriptos encontrados.`);
+
+    results = body.filter(r => r && r.length > 0).map((r, i) => {
+      const linkRaw = tituloIdx >= 0 ? r[tituloIdx]?.toString().trim() || '' : '';
+      const yaProc  = estadoYaIdx >= 0 && r[estadoYaIdx]?.toString().trim() === 'OK';
+      return {
+        rowIdx:      i + 1,
+        nombre:      `${apIdx >= 0 ? r[apIdx]||'' : ''} ${nomIdx >= 0 ? r[nomIdx]||'' : ''}`.trim(),
+        linkRaw,
+        fileId:      extractFileId(linkRaw),
+        nombreTit:   yaProc && nomTitYaIdx  >= 0 ? r[nomTitYaIdx]?.toString()  || '' : '',
+        carrera:     yaProc && carreraYaIdx >= 0 ? r[carreraYaIdx]?.toString() || '' : '',
+        universidad: yaProc && univYaIdx    >= 0 ? r[univYaIdx]?.toString()    || '' : '',
+        status:      yaProc ? 'skip' : (extractFileId(linkRaw) ? 'pending' : 'sin-titulo'),
+        nulos:       [],
+        error:       ''
+      };
+    });
+
+    const yaProc  = results.filter(r => r.status === 'skip').length;
+    const aProcesar = results.filter(r => r.status === 'pending').length;
+    if (yaProc > 0) addLog(`↩ ${yaProc} ya procesados (se omiten).`);
+    addLog(`→ ${aProcesar} títulos a procesar.`);
+
+    setProg(0, results.length);
+    document.getElementById('proc-title').textContent = 'Procesando títulos...';
+
+    for (let i = 0; i < results.length; i++) {
+      if (results[i].status === 'pending') await procesarFila(i);
+      setProg(i + 1, results.length);
+      renderTabla();
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    document.getElementById('proc-title').textContent = 'Procesamiento completo';
+    document.getElementById('tbl-wrap').style.display = 'block';
+    renderTabla();
+    addLog('✓ Procesamiento finalizado.');
+
+  } catch(e) {
+    document.getElementById('proc-title').textContent = 'Error';
+    addLog('✗ ' + e.message);
+  }
+}
+
+// ── Procesar una fila ──────────────────────────────────────
+async function procesarFila(i) {
+  const r = results[i];
+  if (!r.fileId) { r.status = 'sin-titulo'; doneCount++; return; }
+  r.status = 'processing';
+  try {
+    const pr = await fetch(`${SCRIPT_URL}?action=getFile&fileId=${encodeURIComponent(r.fileId)}`);
+    const pd = await pr.json();
+    if (pd.error) throw new Error('No se pudo acceder al archivo adjunto.');
+    if (!pd.base64) throw new Error('El archivo adjunto está vacío.');
+
+    const gemRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[
+          {inline_data:{mime_type: pd.mimeType||'application/pdf', data: pd.base64}},
+          {text:`Título universitario argentino. Responde SOLO JSON sin texto extra:\n{"nombre_apellido":"...","carrera":"...","universidad":"..."}\nnombre_apellido: nombre completo del graduado tal como figura en el título. carrera: nombre completo de la carrera o título otorgado. universidad: nombre completo de la institución. null si no podés leer.`}
+        ]}], generationConfig:{temperature:0} })
+      }
+    );
+    const gd = await gemRes.json();
+    if (gd.error) throw new Error('Error al procesar con IA: ' + gd.error.message);
+    const txt = gd.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(txt.trim()); }
+    catch { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); }
+
+    r.nombreTit   = parsed.nombre_apellido || '';
+    r.carrera     = parsed.carrera         || '';
+    r.universidad = parsed.universidad     || '';
+
+    // Detectar campos nulos
+    const nulos = [];
+    if (!r.nombreTit)   nulos.push('nombre');
+    if (!r.carrera)     nulos.push('carrera');
+    if (!r.universidad) nulos.push('universidad');
+    r.nulos = nulos;
+    r.status = nulos.length > 0 ? 'parcial' : 'ok';
+    doneCount++;
+
+    addLog(`✓ ${r.nombre} — ${r.carrera || '?'}${nulos.length ? ' ⚠ sin: '+nulos.join(', ') : ''}`);
+    await guardarEnPlanilla(r);
+
+  } catch(e) {
+    r.status = 'error';
+    r.error = e.message;
+    errorCount++;
+    addLog(`✗ ${r.nombre}: ${e.message}`);
+    const errEl = document.getElementById('proc-errs');
+    errEl.style.display = 'block';
+    errEl.textContent = `${errorCount} título${errorCount>1?'s':''} con error`;
+  }
+}
+
+// ── Guardar en planilla ────────────────────────────────────
+async function guardarEnPlanilla(r) {
+  const si   = window._sheetIndex || 0;
+  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetIdActual)}&rowIdx=${r.rowIdx}&sheetIndex=${si}`;
+  const saves = [
+    { col: COL_NOMBRE_TIT,  val: r.nombreTit   },
+    { col: COL_CARRERA,     val: r.carrera     },
+    { col: COL_UNIVERSIDAD, val: r.universidad },
+    { col: COL_ESTADO,      val: r.nulos && r.nulos.length > 0 ? 'Parcial: sin ' + r.nulos.join(', ') : 'OK' }
+  ];
+  for (const s of saves) {
+    try {
+      const res  = await fetch(`${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val||'')}`);
+      const data = await res.json();
+    } catch(e) {
+    }
+  }
+}
+
+// ── Renderizar tabla ───────────────────────────────────────
+function renderTabla() {
+  const statusMap = {
+    ok:          '<span class="tag-ok">✓ OK</span>',
+    parcial:     r => `<span style="color:#b45309;font-weight:600">⚠ Parcial: sin ${(r.nulos||[]).join(', ')}</span>`,
+    skip:        '<span class="tag-skip">↩ Ya procesado</span>',
+    error:       '<span class="tag-err">✗ Error</span>',
+    processing:  '<span class="tag-proc">⏳ Procesando...</span>',
+    pending:     '<span style="color:var(--on-sv)">—</span>',
+    'sin-titulo':'<span class="tag-sc">Sin título adjunto</span>'
+  };
+  document.getElementById('tbl-body').innerHTML = results.map((r, i) => `
+    <tr>
+      <td style="color:var(--on-sv)">${i+1}</td>
+      <td style="font-weight:500">${r.nombre||'—'}</td>
+      <td>${r.nombreTit||'—'}</td>
+      <td>${r.carrera||'—'}</td>
+      <td>${r.universidad||'—'}</td>
+      <td>${typeof statusMap[r.status]==='function' ? statusMap[r.status](r) : (statusMap[r.status]||'—')}${r.error?`<div style="font-size:11px;color:var(--err);margin-top:2px">${r.error}</div>`:''}</td>
+    </tr>`).join('');
+
+  const ok      = results.filter(r => r.status==='ok').length;
+  const parcial = results.filter(r => r.status==='parcial').length;
+  const skip    = results.filter(r => r.status==='skip').length;
+  const err     = results.filter(r => r.status==='error').length;
+  const st      = results.filter(r => r.status==='sin-titulo').length;
+  document.getElementById('tbl-count').textContent =
+    `${results.length} inscriptos · ${ok+parcial} procesados${skip?' · '+skip+' omitidos':''}`;
+  document.getElementById('tbl-errors').textContent =
+    [parcial>0?`${parcial} con datos parciales`:'', err>0?`${err} con error`:'', st>0?`${st} sin título`:''].filter(Boolean).join(' · ');
+  document.getElementById('tbl-title').textContent = `Títulos — ${cursoActual.nombre}`;
+}
+
+// ── Exportar XLS ───────────────────────────────────────────
+function exportXLS() {
+  const cols = ['#','Apellido y nombre','Nombre y apellido (título)','Carrera','Universidad','Estado'];
+  const statusLabel = {ok:'OK',parcial:'Parcial',skip:'Ya procesado','sin-titulo':'Sin título',error:'Error',pending:'Pendiente'};
+  const rows = results.map((r,i) => ({
+    '#': i+1,
+    'Apellido y nombre':          r.nombre,
+    'Nombre y apellido (título)': r.nombreTit,
+    'Carrera':                    r.carrera,
+    'Universidad':                r.universidad,
+    'Estado': r.status === 'parcial' ? 'Parcial: sin ' + (r.nulos||[]).join(', ') : (statusLabel[r.status]||r.status)
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows, {header:cols});
+  ws['!cols'] = [{wch:4},{wch:28},{wch:28},{wch:32},{wch:32},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Títulos');
+  const safe = (cursoActual.nombre||'planilla').replace(/[^a-zA-Z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
+  XLSX.writeFile(wb, `Titulos-${safe}.xls`, {bookType:'xls'});
+}
+
+window.onload = cargarCursos;
+</script>
+</body>
+</html>
