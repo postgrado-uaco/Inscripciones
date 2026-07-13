@@ -49,17 +49,13 @@ h1,h2,h3,h4{font-family:var(--fh);}
 @media(max-width:900px){.d-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.d-grid{grid-template-columns:1fr;}}
 
-.d-card{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:22px;box-shadow:var(--sh);}
-.d-card-title{font-size:14px;font-weight:700;color:var(--on-s);margin-bottom:3px;}
-.d-card-sub{font-size:12px;color:var(--on-sv);margin-bottom:16px;}
+.d-card{background:#fff;border:1px solid var(--ov);border-top:4px solid var(--card-c, var(--primary));border-radius:var(--r);padding:20px 22px 22px;box-shadow:var(--sh);}
+.d-card-title{font-size:11.5px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px;}
 .d-card-gear{float:right;font-size:15px;color:var(--on-sv);opacity:.5;cursor:pointer;margin-top:1px;}
 
-.d-donut-wrap{position:relative;width:140px;height:140px;margin:0 auto 16px;display:block;}
-.d-donut-wrap canvas{display:block;width:140px;height:140px;}
-.d-donut-center{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.d-donut-num{font-family:var(--fh);font-size:28px;font-weight:900;line-height:1;}
-.d-donut-num-sub{font-family:var(--fh);font-size:16px;font-weight:800;color:#b26a4a;line-height:1;margin-top:4px;}
-.d-donut-lbl{font-size:9px;font-weight:700;color:var(--on-sv);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
+.d-bignum{display:flex;align-items:baseline;gap:8px;margin-bottom:22px;}
+.d-bignum .num{font-family:var(--fh);font-size:38px;font-weight:900;color:var(--on-s);letter-spacing:-.02em;line-height:1;}
+.d-bignum .lbl{font-size:14px;color:var(--on-sv);font-weight:500;}
 
 .d-meta{display:flex;justify-content:space-between;border-top:1px solid var(--ov);padding-top:12px;margin-top:4px;}
 .d-meta-item{text-align:center;}
@@ -197,8 +193,8 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
       Herramientas
     </a>
-    <a class="sb-item" href="#" onclick="showPage('inscripciones');return false;" id="nv-inscripciones">
-      <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></span>
+    <a class="sb-item" href="configuracion.html">
+      <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>
       Configuración
     </a>
   </nav>
@@ -212,53 +208,30 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <div class="d-bar"></div>
 
       <div class="d-grid">
-        <div class="d-card">
-          <div class="d-card-title">INSCRIPCIONES</div>
-          <div class="d-card-sub">Año vigente</div>
-          <div class="d-card-sub" id="d-sub1" style="display:none"></div>
-          <div class="d-donut-wrap">
-            <canvas id="donut1" width="140" height="140"></canvas>
-            <div class="d-donut-center">
-              <div class="d-donut-num" id="d-num1">—</div>
-              <div class="d-donut-lbl">estudiantes</div>
-            </div>
-          </div>
-          <div>
-            <div class="d-avail-lbl"><span>Promedio por curso</span><span id="d-prom" style="color:#2e7d32;font-weight:700">—</span></div>
-            <div class="d-avail-bg"><div class="d-avail-fill" id="d-prom-bar" style="width:0%;background:var(--primary)"></div></div>
-          </div>
-        </div>
-
-        <div class="d-card">
-          <div class="d-card-title">OFERTA</div>
-          <div class="d-card-sub">Año vigente</div>
-          <div class="d-card-sub" id="d-sub2" style="display:none"></div>
-          <div class="d-donut-wrap">
-            <canvas id="donut2" width="140" height="140"></canvas>
-            <div class="d-donut-center">
-              <div class="d-donut-num" style="color:#6b3a2a" id="d-num2">—</div>
-              <div class="d-donut-lbl">cursos</div>
-            </div>
-          </div>
+        <div class="d-card" style="--card-c:#c1502f">
+          <div class="d-card-title">OFERTA · <span id="oferta-anio">—</span></div>
+          <div class="d-bignum"><span class="num" id="d-num2">—</span><span class="lbl">cursos</span></div>
           <div>
             <div class="d-avail-lbl"><span>Inscripciones abiertas</span><span id="d-avail-pct">—</span></div>
-            <div class="d-avail-bg"><div class="d-avail-fill" id="d-avail-bar" style="width:0%"></div></div>
+            <div class="d-avail-bg" style="background:#f2cdbd"><div class="d-avail-fill" id="d-avail-bar" style="width:0%;background:#c1502f"></div></div>
           </div>
         </div>
 
-        <div class="d-card">
-          <div class="d-card-title">INGRESOS</div>
-          <div class="d-card-sub">Año <span id="ing-anio">—</span></div>
-          <div class="d-donut-wrap">
-            <canvas id="donut3" width="140" height="140"></canvas>
-            <div class="d-donut-center">
-              <div class="d-donut-num" style="font-size:20px;color:#6b3a2a" id="d-ing-total">—</div>
-              <div class="d-donut-num-sub" id="d-ing-30">—</div>
-            </div>
-          </div>
+        <div class="d-card" style="--card-c:#146356">
+          <div class="d-card-title">INSCRIPCIONES · <span id="insc-anio">—</span></div>
+          <div class="d-bignum"><span class="num" id="d-num1">—</span><span class="lbl">estudiantes</span></div>
           <div>
-            <div class="d-avail-lbl"><span>Cursos verificados</span><span id="d-ing-verif">—</span></div>
-            <div class="d-avail-bg"><div class="d-avail-fill" id="d-ing-verif-bar" style="width:0%;background:#6b3a2a"></div></div>
+            <div class="d-avail-lbl"><span>Promedio por curso</span><span id="d-prom" style="color:#146356;font-weight:700">—</span></div>
+            <div class="d-avail-bg" style="background:#b9ddd3"><div class="d-avail-fill" id="d-prom-bar" style="width:0%;background:#146356"></div></div>
+          </div>
+        </div>
+
+        <div class="d-card" style="--card-c:#a8631b">
+          <div class="d-card-title">INGRESOS · <span id="ing-anio">—</span></div>
+          <div class="d-bignum"><span class="num" id="d-ing-total" style="font-size:32px">—</span></div>
+          <div>
+            <div class="d-avail-lbl"><span>Unidad académica</span><span id="d-ing-30" style="font-weight:700">—</span></div>
+            <div class="d-avail-bg" style="background:#f0d6a8"><div class="d-avail-fill" id="d-ing-verif-bar" style="width:0%;background:#a8631b"></div></div>
           </div>
         </div>
       </div>
@@ -364,9 +337,6 @@ window.onload = function() {
   const goto = sessionStorage.getItem('goto');
   if (goto) { sessionStorage.removeItem('goto'); showPage(goto); }
   const k = localStorage.getItem('gemini_api_key');
-  drawDonut('donut1', 0, '#214b46');
-  drawDonut('donut2', 0, '#6b3a2a');
-  drawDonut('donut3', 0, '#6b3a2a');
   if (k) {
     document.getElementById('apiKey').value = k;
     document.getElementById('key-saved').style.display = 'block';
@@ -374,33 +344,14 @@ window.onload = function() {
   }
 };
 
-function drawDonut(id, pct, color) {
-  const c = document.getElementById(id);
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  const cx = 70, cy = 70, r = 48, lw = 18;
-  ctx.clearRect(0, 0, 140, 140);
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2*Math.PI);
-  ctx.strokeStyle = '#e8e8e7'; ctx.lineWidth = lw; ctx.stroke();
-  if (pct > 0) {
-    ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + 2*Math.PI*Math.min(pct,.99));
-    ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
-  }
-}
-
 function actualizarIngresos(cursos) {
   const total = cursos.reduce((s, c) => s + (c.montoCobrado || 0), 0);
   const treinta = total * 0.3;
-  const verificados = cursos.filter(c => c.verificado).length;
-  const totalCursos = cursos.length;
-  const pct = totalCursos > 0 ? verificados / totalCursos : 0;
 
   document.getElementById('ing-anio').textContent = new Date().getFullYear();
   document.getElementById('d-ing-total').textContent = '$' + Math.round(total).toLocaleString('es-AR');
   document.getElementById('d-ing-30').textContent = '$' + Math.round(treinta).toLocaleString('es-AR');
-  document.getElementById('d-ing-verif').textContent = verificados + ' / ' + totalCursos;
-  document.getElementById('d-ing-verif-bar').style.width = Math.round(pct * 100) + '%';
-  drawDonut('donut3', pct, '#6b3a2a');
+  document.getElementById('d-ing-verif-bar').style.width = '30%';
 }
 
 function normNombre(n) {
@@ -681,21 +632,20 @@ function renderCursos(cursos, apiKey) {
   }
 
   // Actualizar dashboard
+  const anioActual = new Date().getFullYear();
+  document.getElementById('oferta-anio').textContent = anioActual;
+  document.getElementById('insc-anio').textContent = anioActual;
+
   const total = cursos.reduce((s,c) => s + c.inscriptos, 0);
   const prom = Math.round(total / cursos.length);
   const top = [...cursos].sort((a,b) => b.inscriptos - a.inscriptos)[0];
   document.getElementById('d-num1').textContent = total;
-  document.getElementById('d-sub1').textContent = `${cursos.length} curso${cursos.length !== 1 ? 's' : ''} activos`;
-  document.getElementById('d-prom').textContent = prom;
-  const maxProm = 100;
+  document.getElementById('d-prom').textContent = prom + (top ? ' / máx. ' + top.inscriptos : '');
+  const maxProm = top ? Math.max(top.inscriptos, 1) : 100;
   document.getElementById('d-prom-bar').style.width = Math.min(100, Math.round(prom / maxProm * 100)) + '%';
-  drawDonut('donut1', 0.75, '#214b46');
   if (top) {
     document.getElementById('d-num2').textContent = cursos.length;
-    document.getElementById('d-sub2').textContent = cursos.length + ' curso' + (cursos.length !== 1 ? 's' : '') + ' activos';
-    const pct2 = Math.min(0.85, cursos.length / Math.max(cursos.length * 1.2, 1));
-    drawDonut('donut2', pct2, '#6b3a2a');
-    document.getElementById('d-avail-pct').textContent = cursos.filter(c => c.abierto).length + ' abiertas';
+    document.getElementById('d-avail-pct').textContent = cursos.filter(c => c.abierto).length;
     document.getElementById('d-avail-bar').style.width = Math.round(cursos.filter(c => c.abierto).length / cursos.length * 100) + '%';
   }
 }

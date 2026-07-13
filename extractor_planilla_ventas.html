@@ -51,7 +51,11 @@ h1,h2,h3,h4{font-family:var(--fh);}
 
 /* CURSOS */
 .curso-list{display:flex;flex-direction:column;gap:10px;}
-.sort-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-lbl{font-size:12px;font-weight:600;color:var(--on-sv);}
+.sort-btn{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1.5px solid var(--ov);background:#fff;color:var(--on-sv);cursor:pointer;font-family:var(--fb);transition:all .15s;}
+.sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+.sort-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
 .sort-bar label{font-size:13px;font-weight:600;color:var(--on-s);white-space:nowrap;}
 .sort-bar select{font-size:13px;padding:5px 10px;border:1px solid var(--ov);border-radius:6px;background:#fff;color:var(--on-s);cursor:pointer;outline:none;}
 .curso-item{background:#fff;border:1px solid var(--ov);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);transition:border-color .15s;}
@@ -120,7 +124,7 @@ tr:hover td{background:var(--surf-lo);}
 <header class="hdr">
   <div>
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
-    <div class="hdr-sub">UNPA-UACO</div>
+    <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
   <div class="av">AD</div>
 </header>
@@ -129,12 +133,12 @@ tr:hover td{background:var(--surf-lo);}
   <nav class="sb">
     <a class="sb-item" href="index.html">
       <span class="sb-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
-      Principal
+      Inicio
     </a>
-    <a class="sb-item" href="herramientas.html">
+    <a class="sb-item on" href="herramientas.html">
       <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Herramientas
     </a>
-    <a class="sb-item sb-disabled" href="#" aria-disabled="true">
+    <a class="sb-item" href="configuracion.html">
       <span class="sb-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>Configuración
     </a>
   </nav>
@@ -144,11 +148,9 @@ tr:hover td{background:var(--surf-lo);}
     <!-- PASO 1: LISTA DE CURSOS -->
     <div id="step-cursos">
       <nav class="bc">
-        <a href="index.html">Inicio</a>
-        <span class="bc-sep">›</span>
         <a href="herramientas.html">Herramientas</a>
         <span class="bc-sep">›</span>
-        <span class="bc-cur">Planilla de ventas</span>
+        <span class="bc-cur">Generar Pagos</span>
       </nav>
       <div class="ph">
         <h1>Planilla de ventas</h1>
@@ -156,14 +158,10 @@ tr:hover td{background:var(--surf-lo);}
       </div>
       <div id="al-cursos"></div>
       <div class="sort-bar">
-        <label for="sort-courses">Ordenar:</label>
-        <select id="sort-courses" onchange="sortCursos()">
-          <option value="nombre">Nombre (A→Z)</option>
-          <option value="nombre-desc">Nombre (Z→A)</option>
-          <option value="total-desc">Más inscriptos</option>
-          <option value="total">Menos inscriptos</option>
-          <option value="procesados-desc">Más procesados</option>
-        </select>
+        <span class="sort-lbl">Ordenar:</span>
+        <button class="sort-btn on" onclick="setSortOrder('defecto',this)" id="sort-defecto">Recientes</button>
+        <button class="sort-btn" onclick="setSortOrder('nombre',this)" id="sort-nombre">A–Z</button>
+        <button class="sort-btn" onclick="setSortOrder('estado',this)" id="sort-estado">Estado</button>
       </div>
       <div id="curso-list" class="curso-list">
         <div class="empty">⏳ Cargando cursos disponibles...</div>
@@ -173,11 +171,9 @@ tr:hover td{background:var(--surf-lo);}
     <!-- PASO 2: PROCESAMIENTO Y TABLA -->
     <div id="step-proceso" style="display:none">
       <nav class="bc" id="bc-proceso">
-        <a href="index.html">Inicio</a>
-        <span class="bc-sep">›</span>
         <a href="herramientas.html">Herramientas</a>
         <span class="bc-sep">›</span>
-        <a href="#" onclick="volverCursos();return false;">Planilla de ventas</a>
+        <a href="#" onclick="volverCursos();return false;">Generar Pagos</a>
         <span class="bc-sep">›</span>
         <span class="bc-cur" id="bc-nombre"></span>
       </nav>
@@ -364,6 +360,24 @@ function extractFileId(url) {
 
 /* ── Cargar cursos ──────────────────────────────────────── */
 
+function parseFechaInicio(fechaStr) {
+  if (!fechaStr) return -1;
+  var m = fechaStr.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (!m) return -1;
+  var dd = parseInt(m[1], 10), mm = parseInt(m[2], 10);
+  var yyyy = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (yyyy < 100) yyyy += 2000;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return -1;
+  return yyyy * 10000 + mm * 100 + dd;
+}
+function normCursoImpl(s) {
+  return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/^\d{4}\s*[-–]\s*/,'')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/,'')
+    .replace(/\(respuestas[^)]*\)\s*$/,'').replace(/\(file responses\)\s*$/,'')
+    .replace(/\s+/g,' ').trim();
+}
+
 async function cargarCursos() {
   try {
     document.getElementById('curso-list').innerHTML = '<div class="empty">⏳ Cargando cursos disponibles...</div>';
@@ -374,12 +388,29 @@ async function cargarCursos() {
     const sheets = data.sheets || [];
     // Renderizar primero sin conteos
     renderCursos(sheets.map(function(s){ return Object.assign({}, s, {procesados: null, total: null}); }));
+
+    // Fechas de la planilla de implementación (para el orden "Recientes")
+    var fechaMap = {};
+    try {
+      const ri = await fetch(NEW_SCRIPT_URL + '?action=getImplementacion');
+      const di = await ri.json();
+      if (!di.error && di.values && di.values.length > 1) {
+        const hdrI = di.values[0];
+        const normI = function(h){ return (h||'').toString().trim().toLowerCase(); };
+        const cDenom = hdrI.findIndex(function(h){ return normI(h).includes('denominacion'); });
+        const cFecha = hdrI.findIndex(function(h){ return normI(h).includes('fecha'); });
+        if (cDenom >= 0 && cFecha >= 0) {
+          di.values.slice(1).forEach(function(r){ fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
+        }
+      }
+    } catch(e) {}
+
     // Enriquecer con conteos en paralelo
     Promise.all(sheets.map(async function(s) {
       try {
         const r = await fetch(NEW_SCRIPT_URL + '?action=getSheet&sheetId=' + encodeURIComponent(s.id));
         const d = await r.json();
-        if (d.error) return Object.assign({}, s, {procesados: 0, total: 0});
+        if (d.error) return Object.assign({}, s, {procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''});
         const rows = (d.values || []).slice(1).filter(function(r){ return r && r.length > 0; });
         const hdr = d.values && d.values[0] ? d.values[0] : [];
         const norm = function(h){ return h ? h.toString().trim().toLowerCase().replace(/\s+/g,' ') : ''; };
@@ -388,11 +419,14 @@ async function cargarCursos() {
         const procesados = estadoIdx >= 0
           ? rows.filter(function(r){ return r[estadoIdx] && r[estadoIdx].toString().trim() === 'OK'; }).length
           : 0;
-        return Object.assign({}, s, {procesados: procesados, total: total, sheetIndex: d.sheetIndex || 0});
+        return Object.assign({}, s, {procesados: procesados, total: total, sheetIndex: d.sheetIndex || 0, abierto: d.formAbierto !== false, fecha: fechaMap[normCursoImpl(s.name)] || ''});
       } catch(e) {
-        return Object.assign({}, s, {procesados: 0, total: 0});
+        return Object.assign({}, s, {procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''});
       }
-    })).then(function(enriched){ renderCursos(enriched); });
+    })).then(function(enriched){
+      renderCursos(enriched);
+      setSortOrder('defecto', document.getElementById('sort-defecto'));
+    });
   } catch(e) {
     document.getElementById('al-cursos').innerHTML =
       '<div class="al al-e">\u26a0 Error al cargar los cursos: ' + e.message + '</div>';
@@ -401,17 +435,25 @@ async function cargarCursos() {
 }
 
 var _cursosCache = [];
+var _sortOrder = 'defecto';
+function setSortOrder(order, btn) {
+  _sortOrder = order;
+  document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  sortCursos();
+}
 function sortCursos() {
   if (!_cursosCache.length) return;
-  var sortBy = document.getElementById('sort-courses').value;
   var sorted = _cursosCache.slice().sort(function(a, b) {
-    var na = normNombre(a.name), nb = normNombre(b.name);
-    if (sortBy === 'nombre')          return na.localeCompare(nb);
-    if (sortBy === 'nombre-desc')     return nb.localeCompare(na);
-    if (sortBy === 'total-desc')      return (b.total || 0) - (a.total || 0);
-    if (sortBy === 'total')           return (a.total || 0) - (b.total || 0);
-    if (sortBy === 'procesados-desc') return (b.procesados || 0) - (a.procesados || 0);
-    return 0;
+    if (_sortOrder === 'defecto') {
+      if (a.abierto !== b.abierto) return a.abierto ? -1 : 1;
+      return parseFechaInicio(b.fecha) - parseFechaInicio(a.fecha);
+    }
+    if (_sortOrder === 'estado') {
+      if (a.abierto === b.abierto) return normNombre(a.name).localeCompare(normNombre(b.name));
+      return a.abierto ? -1 : 1;
+    }
+    return normNombre(a.name).localeCompare(normNombre(b.name));
   });
   renderCursos(sorted, true);
 }
