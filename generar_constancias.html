@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Generar constancias — Posgrado UACO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -73,7 +75,7 @@ select,input[type=text]{font-family:var(--fb);font-size:12.5px;padding:5px 7px;b
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -174,8 +176,10 @@ function volverACursos() {
   document.getElementById('fileInput').value = '';
   document.getElementById('drop-txt').textContent = '📄 Arrastrá el acta acá o hacé click para elegirla';
   document.getElementById('log-extract').style.display = 'none';
-  document.getElementById('log-extract').textContent = '';
-  showStep('step-upload');
+  document.getElementById('log-extract').textContent = '';  document.getElementById('genStatus').textContent = '';
+  const logGen = document.getElementById('log-gen');
+  logGen.style.display = 'none';
+  logGen.textContent = '';  showStep('step-upload');
 }
 
 let archivoActual = null; // guardamos el File para poder reintentar si hace falta elegir el curso a mano
@@ -263,24 +267,35 @@ const BADGE_CONDICION = {
 };
 
 function renderTabla() {
+  // Limpiar estado de generación anterior al mostrar nuevos datos
+  const btnGen = document.getElementById('btnGenerar');
+  if (btnGen) btnGen.disabled = false;
+  document.getElementById('genStatus').textContent = '';
+  const logGen = document.getElementById('log-gen');
+  logGen.style.display = 'none';
+  logGen.textContent = '';
+
   const tbl = document.getElementById('tabla-alumnos');
-  let html = `<tr><th></th><th>Apellido y Nombre</th><th>DNI</th><th>Condición</th><th>Calificación</th><th>Match</th></tr>`;
+  let html = `<tr><th></th><th>Apellido y Nombre</th><th>DNI</th><th>Condición</th><th>Calificación</th><th>Estado</th></tr>`;
   alumnosExtraidos.forEach((al, i) => {
     const esAusente = al.condicion === 'Ausente';
     const puedeGenerar = al.matched && !esAusente;
-    const checked = al.condicion === 'Aprobado' && puedeGenerar ? 'checked' : '';
-    const matchBadge = !al.matched
+    const yaTieneConstancia = puedeGenerar && !!al.pdfFileId;
+    const checked = al.condicion === 'Aprobado' && puedeGenerar && !yaTieneConstancia ? 'checked' : '';
+    const estadoBadge = !al.matched
       ? '<span class="badge badge-warn">⚠ no encontrado en la planilla</span>'
       : esAusente
         ? '<span class="badge badge-err">✗ ausente, no genera constancia</span>'
-        : '<span class="badge badge-ok">✓ encontrado</span>';
+        : yaTieneConstancia
+          ? '<span class="badge badge-ok">✓ encontrado</span><span class="badge badge-ok" style="margin-left:4px">📄 ya generada</span>'
+          : '<span class="badge badge-ok">✓ encontrado</span>';
     html += `<tr>
       <td><input type="checkbox" id="chk-${i}" ${checked} ${puedeGenerar?'':'disabled'}></td>
       <td>${esc(al.apellido)}, ${esc(al.nombre)}</td>
       <td>${esc(al.dni)||'—'}</td>
       <td>${BADGE_CONDICION[al.condicion] || esc(al.condicion) || '—'}</td>
       <td>${esc(al.calificacion) || '—'}</td>
-      <td>${matchBadge}</td>
+      <td>${estadoBadge}</td>
     </tr>`;
   });
   tbl.innerHTML = html;
@@ -318,20 +333,50 @@ async function generarConstancias() {
 function mostrarResultados(constancias) {
   const list = document.getElementById('resultados-list');
   list.innerHTML = '';
+  const filasYaExisten = [];
   constancias.forEach(c => {
     const div = document.createElement('div');
     div.className = 'res-item';
     if (c.ok) {
-      div.innerHTML = `<span>${c.nombre}</span><a href="${c.url}" target="_blank">Descargar PDF ↗</a>`;
+      div.innerHTML = `<span>${esc(c.nombre)}</span><a href="${c.url}" target="_blank">Descargar PDF ↗</a>`;
+    } else if (c.yaExiste) {
+      filasYaExisten.push(c.rowIdx);
+      div.innerHTML = `<span>${esc(c.nombre)}</span><span class="badge badge-warn">↩ Ya existe</span><a href="${c.url}" target="_blank" style="font-size:12px;margin-left:8px">Ver PDF ↗</a>`;
     } else {
-      div.innerHTML = `<span>Fila ${c.rowIdx}</span><span class="badge badge-err">✗ ${c.error||'error'}</span>`;
+      div.innerHTML = `<span>${esc(c.nombre || 'Fila ' + c.rowIdx)}</span><span class="badge badge-err">✗ ${esc(c.error||'error')}</span>`;
     }
     list.appendChild(div);
   });
+  if (filasYaExisten.length) {
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.style.marginTop = '16px';
+    btn.textContent = `Regenerar ${filasYaExisten.length} ya existente(s) →`;
+    btn.onclick = () => regenerarConstancias(filasYaExisten, btn);
+    list.appendChild(btn);
+  }
   showStep('step-resultados');
+}
+
+async function regenerarConstancias(filas, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Regenerando...'; }
+  addLog('log-gen', `Regenerando ${filas.length} constancia(s) existente(s)...`);
+  try {
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'generarConstancias', sheetId: cursoActual.id, curso: cursoActual.nombre, filas, regenerar: true })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    mostrarResultados(d.constancias || []);
+  } catch(e) {
+    addLog('log-gen', '✗ Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Reintentar'; }
+  }
 }
 
 // La app arranca directo en el paso de subir el acta (step-upload ya está "on" por defecto).
 </script>
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

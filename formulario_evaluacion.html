@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Formulario de Evaluación — Posgrado UACO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -97,7 +99,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -469,7 +471,6 @@ async function iniciarProceso(sheetId, nombre) {
 
 async function guardarDNIAlumno(sheetId, rowIdx, al) {
   const si = window._sheetIndex || 0;
-  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetId)}&rowIdx=${rowIdx}&sheetIndex=${si}`;
   const saves = [
     { col: 'Apellido (DNI)', val: al.apellido || '' },
     { col: 'Nombre (DNI)',   val: al.nombre   || '' },
@@ -478,7 +479,11 @@ async function guardarDNIAlumno(sheetId, rowIdx, al) {
   ];
   for (const s of saves) {
     try {
-      await fetch(`${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val)}`);
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveColumna', sheetId, rowIdx, sheetIndex: si, colName: s.col, value: s.val })
+      });
     } catch(e) {
       console.warn('Error guardando DNI:', e.message);
     }
@@ -815,5 +820,6 @@ async function exportarWord() {
 
 window.onload = cargarCursos;
 </script>
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

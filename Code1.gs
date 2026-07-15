@@ -20,7 +20,7 @@ const HOJA_IMPLEMENTACION       = 'Implementación';
 // La plantilla de constancia y la carpeta de destino ya NO están hardcodeadas:
 // se configuran desde la página "Configuración" de la app y quedan guardadas
 // en PropertiesService (ver getConfigConstancias / handleGuardarConfigConstancias).
-const ACCIONES_PERMITIDAS       = ['listSheets','getSheet','getImplementacion','getAllCursos','getFile','processFile','saveIngreso','getIngresos','saveMontoFila','saveColumna','extraerActa','generarConstancias','getConfigConstancias','subirPlantillaConstancia','guardarCarpetaConstancias'];
+const ACCIONES_PERMITIDAS       = ['listSheets','getSheet','getImplementacion','getAllCursos','getFile','mergeDocs','processFile','saveIngreso','getIngresos','saveMontoFila','saveColumna','saveColumnas','extraerActa','generarConstancias','getConfigConstancias','subirPlantillaConstancia','guardarCarpetaConstancias','login','logout'];
 const REGEX_DRIVE_ID            = /^[a-zA-Z0-9_\-]{25,50}$/;
 
 // ─── PUNTO DE ENTRADA (POST) ─────────────────────────────────────────────────
@@ -34,6 +34,12 @@ function doPost(e) {
     if (!action) return errorResponse('Parámetro "action" requerido.', 400);
     if (!ACCIONES_PERMITIDAS.includes(action)) return errorResponse('Acción no permitida: ' + action, 403);
 
+    // Verificar token de sesión (excepto para login y logout)
+    if (action !== 'login' && action !== 'logout') {
+      const token = sanitizeString(body.token);
+      if (!verificarToken(token)) return errorResponse('Sesión no válida. Iniciá sesión nuevamente.', 401);
+    }
+
     switch (action) {
       case 'extraerActa': {
         const sheetId  = sanitizeString(body.sheetId); // opcional: si no viene, se autodetecta por el nombre del curso en el acta
@@ -45,14 +51,15 @@ function doPost(e) {
       }
 
       case 'generarConstancias': {
-        const sheetId = sanitizeString(body.sheetId);
-        const curso   = sanitizeString(body.curso);
-        const filas   = Array.isArray(body.filas) ? body.filas : [];
+        const sheetId   = sanitizeString(body.sheetId);
+        const curso     = sanitizeString(body.curso);
+        const filas     = Array.isArray(body.filas) ? body.filas : [];
+        const regenerar = body.regenerar === true;
         if (!sheetId) return errorResponse('sheetId requerido.', 400);
         if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
         if (!curso) return errorResponse('curso requerido.', 400);
         if (!filas.length) return errorResponse('No se indicaron filas a generar.', 400);
-        return handleGenerarConstancias(sheetId, curso, filas);
+        return handleGenerarConstancias(sheetId, curso, filas, regenerar);
       }
 
       case 'subirPlantillaConstancia': {
@@ -67,6 +74,71 @@ function doPost(e) {
         const carpeta = sanitizeString(body.carpeta);
         if (!carpeta) return errorResponse('Carpeta requerida.', 400);
         return handleGuardarCarpetaConstancias(carpeta);
+      }
+
+      case 'login': {
+        const email = sanitizeString(body.email);
+        const pwd   = sanitizeString(body.pwd);
+        if (!email || !pwd) return errorResponse('Credenciales requeridas.', 400);
+        return handleLogin(email, pwd);
+      }
+
+      case 'logout': {
+        const token = sanitizeString(body.token);
+        if (token) CacheService.getScriptCache().remove('sess_' + token);
+        return jsonResponse({ ok: true });
+      }
+
+      case 'saveColumna': {
+        const sheetId    = sanitizeString(body.sheetId);
+        const rowIdx     = parseInt(body.rowIdx, 10);
+        const colName    = sanitizeString(body.colName);
+        const value      = sanitizeString(body.value);
+        const sheetIndex = parseInt(body.sheetIndex || 0, 10) || 0;
+        if (!sheetId) return errorResponse('sheetId requerido.', 400);
+        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
+        if (isNaN(rowIdx) || rowIdx < 1) return errorResponse('rowIdx inválido.', 400);
+        if (!colName || colName.length > 100) return errorResponse('colName inválido.', 400);
+        return handleSaveColumna(sheetId, rowIdx, colName, value, sheetIndex);
+      }
+
+      case 'saveColumnas': {
+        const sheetId    = sanitizeString(body.sheetId);
+        const rowIdx     = parseInt(body.rowIdx, 10);
+        const sheetIndex = parseInt(body.sheetIndex || 0, 10) || 0;
+        const cols       = body.cols;
+        if (!sheetId) return errorResponse('sheetId requerido.', 400);
+        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
+        if (isNaN(rowIdx) || rowIdx < 1) return errorResponse('rowIdx inválido.', 400);
+        if (!cols || typeof cols !== 'object' || Array.isArray(cols)) return errorResponse('cols debe ser un objeto.', 400);
+        const colKeys = Object.keys(cols);
+        if (!colKeys.length) return errorResponse('cols vacío.', 400);
+        if (colKeys.length > 20) return errorResponse('Demasiadas columnas (máx 20).', 400);
+        const sanitizedCols = {};
+        for (const k of colKeys) {
+          const sk = sanitizeString(k);
+          if (!sk || sk.length > 100) return errorResponse('colName inválido: ' + k, 400);
+          sanitizedCols[sk] = sanitizeString(String(cols[k] == null ? '' : cols[k]));
+        }
+        return handleSaveColumnas(sheetId, rowIdx, sanitizedCols, sheetIndex);
+      }
+
+      case 'saveIngreso': {
+        const sheetId = sanitizeString(body.sheetId);
+        const monto   = sanitizeString(body.monto);
+        if (!sheetId) return errorResponse('sheetId requerido.', 400);
+        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
+        return handleSaveIngreso(sheetId, monto);
+      }
+
+      case 'saveMontoFila': {
+        const sheetId = sanitizeString(body.sheetId);
+        const rowIdx  = parseInt(body.rowIdx, 10);
+        const monto   = sanitizeString(body.monto);
+        if (!sheetId) return errorResponse('sheetId requerido.', 400);
+        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
+        if (isNaN(rowIdx) || rowIdx < 1) return errorResponse('rowIdx inválido.', 400);
+        return handleSaveMontoFila(sheetId, rowIdx, monto);
       }
 
       default:
@@ -86,6 +158,10 @@ function doGet(e) {
     const action = sanitizeString(params.action);
     if (!action) return errorResponse('Parámetro "action" requerido.', 400);
     if (!ACCIONES_PERMITIDAS.includes(action)) return errorResponse('Acción no permitida: ' + action, 403);
+
+    // Verificar token de sesión
+    const token = sanitizeString(params.token);
+    if (!verificarToken(token)) return errorResponse('Sesión no válida. Iniciá sesión nuevamente.', 401);
 
     switch (action) {
 
@@ -121,42 +197,17 @@ function doGet(e) {
         return handleProcessFile(fileId, tipo);
       }
 
-      case 'saveIngreso': {
-        const sheetId = sanitizeString(params.sheetId);
-        const monto   = sanitizeString(params.monto);
-        if (!sheetId) return errorResponse('sheetId requerido.', 400);
-        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
-        return handleSaveIngreso(sheetId, monto);
-      }
-
       case 'getIngresos':
         return handleGetIngresos();
 
-      case 'saveMontoFila': {
-        const sheetId = sanitizeString(params.sheetId);
-        const rowIdx  = parseInt(params.rowIdx, 10);
-        const monto   = sanitizeString(params.monto);
-        if (!sheetId) return errorResponse('sheetId requerido.', 400);
-        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
-        if (isNaN(rowIdx) || rowIdx < 1) return errorResponse('rowIdx inválido.', 400);
-        return handleSaveMontoFila(sheetId, rowIdx, monto);
-      }
-
-      case 'saveColumna': {
-        const sheetId    = sanitizeString(params.sheetId);
-        const rowIdx     = parseInt(params.rowIdx, 10);
-        const colName    = sanitizeString(params.colName);
-        const value      = sanitizeString(params.value);
-        const sheetIndex = parseInt(params.sheetIndex || '0', 10) || 0;
-        if (!sheetId) return errorResponse('sheetId requerido.', 400);
-        if (!REGEX_DRIVE_ID.test(sheetId)) return errorResponse('sheetId inválido.', 400);
-        if (isNaN(rowIdx) || rowIdx < 1) return errorResponse('rowIdx inválido.', 400);
-        if (!colName || colName.length > 100) return errorResponse('colName inválido.', 400);
-        return handleSaveColumna(sheetId, rowIdx, colName, value, sheetIndex);
-      }
-
       case 'getConfigConstancias':
         return handleGetConfigConstancias();
+
+      case 'mergeDocs': {
+        const fileIds = sanitizeString(params.fileIds);
+        if (!fileIds) return errorResponse('fileIds requerido.', 400);
+        return handleMergeDocs(fileIds);
+      }
 
       default:
         return errorResponse('Acción desconocida.', 400);
@@ -177,7 +228,7 @@ function handleListSheets() {
   const sheets = [];
   while (files.hasNext()) {
     const file = files.next();
-    sheets.push({ id: sanitizeString(file.getId()), name: sanitizeString(file.getName()) });
+    sheets.push({ id: sanitizeString(file.getId()), name: limpiarNombreCurso(file.getName()) });
   }
   return jsonResponse({ sheets: sheets, carpeta: sanitizeString(folder.getName()) });
 }
@@ -214,7 +265,7 @@ function handleGetSheet(sheetId) {
   try {
     const formUrl = spreadsheet.getFormUrl();
     if (formUrl) formAbierto = FormApp.openByUrl(formUrl).isAcceptingResponses();
-  } catch (e) {}
+  } catch (e) { Logger.log('No se pudo leer estado del formulario: ' + e.message); }
 
   return jsonResponse({ values: values, formAbierto: formAbierto, sheetIndex: sheetIndex });
 }
@@ -354,6 +405,27 @@ function handleGetFile(fileId) {
   }
 }
 
+function handleMergeDocs(fileIdsParam) {
+  const ids = fileIdsParam.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+  if (!ids.length) return errorResponse('No se indicaron fileIds.', 400);
+  if (ids.length > 20) return errorResponse('Se permiten hasta 20 archivos por solicitud.', 400);
+  for (var i = 0; i < ids.length; i++) {
+    if (!REGEX_DRIVE_ID.test(ids[i])) return errorResponse('fileId inválido: ' + ids[i], 400);
+  }
+  var pdfs = [];
+  for (var j = 0; j < ids.length; j++) {
+    try {
+      var file = DriveApp.getFileById(ids[j]);
+      var blob = (file.getMimeType() === MimeType.PDF) ? file.getBlob() : file.getAs(MimeType.PDF);
+      pdfs.push(Utilities.base64Encode(blob.getBytes()));
+    } catch(e) {
+      Logger.log('handleMergeDocs: no se pudo convertir ' + ids[j] + ': ' + e.message);
+      // El archivo se omite; el cliente verá menos páginas pero el resto continúa.
+    }
+  }
+  return jsonResponse({ pdfs: pdfs });
+}
+
 const PROMPTS = {
   comprobante:        'Comprobante de transferencia bancaria argentina. Responde SOLO JSON sin texto extra:\n{"monto":"...","fecha":"...","cbu_destinatario":"...","id_transaccion":"..."}\nmonto: solo números y punto decimal (ej: 1500.50). fecha: DD-MM-AAAA. cbu_destinatario: CBU o CVU del destinatario/receptor de la transferencia, solo dígitos sin guiones ni espacios. id_transaccion: número o código de operación. null si no podés leer.',
   comprobante_simple: 'Comprobante de transferencia bancaria argentina. Responde SOLO JSON sin texto extra: {"monto":"...","fecha":"...","id_transaccion":"..."} monto: solo numeros y punto decimal (ej: 1500.50). fecha: DD-MM-AAAA. id_transaccion: numero o codigo de operacion/comprobante. null si no podes leer algun campo.',
@@ -471,7 +543,7 @@ function buscarCursoPorNombre(nombreActa) {
 
   const files = carpeta.getFilesByType(MimeType.GOOGLE_SHEETS);
   const candidatos = [];
-  while (files.hasNext()) { const f = files.next(); candidatos.push({ id: f.getId(), name: f.getName() }); }
+  while (files.hasNext()) { const f = files.next(); candidatos.push({ id: f.getId(), name: limpiarNombreCurso(f.getName()) }); }
 
   const qn = normCursoTexto(nombreActa);
   let match = candidatos.find(c => normCursoTexto(c.name) === qn);
@@ -555,7 +627,7 @@ function handleExtraerActa(sheetId, base64, mimeType) {
     sheetId = match.id;
     cursoNombre = match.name;
   } else {
-    try { cursoNombre = sanitizeString(DriveApp.getFileById(sheetId).getName()); } catch(e) { cursoNombre = cursoDetectado; }
+    try { cursoNombre = limpiarNombreCurso(DriveApp.getFileById(sheetId).getName()); } catch(e) { cursoNombre = cursoDetectado; }
   }
 
   // Matchear contra la planilla de inscriptos y guardar Condición/Calificación
@@ -582,6 +654,9 @@ function handleExtraerActa(sheetId, base64, mimeType) {
   let colNota = hdr.findIndex(h => norm(h) === norm(COL_NOTA)) + 1;
   if (!colNota) { colNota = Math.max(colCondicion, sheet.getLastColumn()) + 1; sheet.getRange(1, colNota).setValue(COL_NOTA); }
 
+  const COL_PDF_CONST = 'PDF Constancia';
+  const colPdfIdx = hdr.findIndex(h => String(h).trim() === COL_PDF_CONST);
+
   const filasData = lastRow > 1 ? sheet.getRange(2, 1, lastRow - 1, lastCol).getValues() : [];
   const normDni    = s => (s || '').toString().replace(/\D/g, '');
   const normTexto  = s => (s || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -602,7 +677,8 @@ function handleExtraerActa(sheetId, base64, mimeType) {
     const item = {
       apellido: al.apellido || '', nombre: al.nombre || '', dni: al.dni || '',
       condicion: al.condicion || '', calificacion: al.calificacion || '',
-      matched: rowIdx >= 0, rowIdx: rowIdx >= 0 ? rowIdx + 2 : null
+      matched: rowIdx >= 0, rowIdx: rowIdx >= 0 ? rowIdx + 2 : null,
+      pdfFileId: (rowIdx >= 0 && colPdfIdx >= 0) ? (filasData[rowIdx][colPdfIdx] || '').toString().trim() : ''
     };
 
     if (rowIdx >= 0) {
@@ -834,7 +910,8 @@ function getOrCreateSubcarpeta(carpetaPadre, nombreCurso) {
  * Los alumnos "Ausente" nunca generan constancia (se filtran acá también
  * como resguardo, aunque el front ya no debería dejar tildarlos).
  */
-function handleGenerarConstancias(sheetId, curso, filas) {
+function handleGenerarConstancias(sheetId, curso, filas, regenerar) {
+  curso = limpiarNombreCurso(curso);
   const props = PropertiesService.getScriptProperties();
   const plantillaId = props.getProperty('plantilla_constancia_id') || '';
   const carpetaId    = props.getProperty('carpeta_constancias_id') || '';
@@ -864,6 +941,11 @@ function handleGenerarConstancias(sheetId, curso, filas) {
   const cDni      = hdr.findIndex(h => norm(h).includes('documento') && norm(h).includes('identidad') && !norm(h).includes('copia'));
   const cCondicion = hdr.findIndex(h => norm(h) === norm('Condición acta'));
   const cNota       = hdr.findIndex(h => norm(h) === norm('Calificación acta'));
+
+  // Columna donde se guarda el fileId del PDF generado (para linkear sin buscar en Drive)
+  const COL_PDF = 'PDF Constancia';
+  let colPdfPos = hdr.findIndex(h => String(h).trim() === COL_PDF) + 1;
+  if (colPdfPos === 0) { colPdfPos = sheet.getLastColumn() + 1; sheet.getRange(1, colPdfPos).setValue(COL_PDF); }
 
   // Datos del curso desde la planilla de implementación (docente, fechas, duración, tipo+denominación)
   let docente = '', fechasCrudo = '', duracion = '', cursoTexto = curso; // fallback: nombre de la planilla de Drive
@@ -916,6 +998,21 @@ function handleGenerarConstancias(sheetId, curso, filas) {
         return;
       }
 
+      // Comprobar si ya existe una constancia para este alumno en la subcarpeta
+      const pdfName = 'Constancia - ' + nombreCompleto + '.pdf';
+      const iterExistente = subcarpeta.getFilesByName(pdfName);
+      if (iterExistente.hasNext()) {
+        const existente = iterExistente.next();
+        if (!regenerar) {
+          // Ya existe y no se pidió regenerar: informar sin sobreescribir
+          sheet.getRange(rowIdx, colPdfPos).setValue(existente.getId());
+          resultado.push({ rowIdx: rowIdx, nombre: nombreCompleto, ok: false, yaExiste: true, url: existente.getUrl(), fileId: existente.getId() });
+          return;
+        }
+        // regenerar=true: eliminar el archivo anterior antes de generar el nuevo
+        try { existente.setTrashed(true); } catch(e2) { /* continuar igual */ }
+      }
+
       const fraseResultado = condicion === 'Asistente'
         ? 'ASISTIÓ al ' + cursoTexto + ' a cargo de ' + docente + ', realizado desde el ' + fechas + ', con una duración de ' + duracion + '.'
         : 'APROBÓ con calificación ' + calificacionATexto(nota) + ' el ' + cursoTexto + ' a cargo de ' + docente + ', realizado desde el ' + fechas + ', con una duración de ' + duracion + '.';
@@ -933,6 +1030,7 @@ function handleGenerarConstancias(sheetId, curso, filas) {
 
       const pdfBlob = DriveApp.getFileById(docId).getAs(MimeType.PDF);
       const pdfFile = subcarpeta.createFile(pdfBlob).setName('Constancia - ' + nombreCompleto + '.pdf');
+      sheet.getRange(rowIdx, colPdfPos).setValue(pdfFile.getId());
 
       resultado.push({ rowIdx: rowIdx, nombre: nombreCompleto, ok: true, url: pdfFile.getUrl(), fileId: pdfFile.getId() });
     } catch(e) {
@@ -981,6 +1079,39 @@ function handleSaveColumna(sheetId, rowIdx, colName, value, sheetIndex) {
   }
 }
 
+/**
+ * Guarda múltiples valores en distintas columnas de una misma fila, en una sola llamada.
+ * cols: objeto { nombreColumna: valor, ... }
+ */
+function handleSaveColumnas(sheetId, rowIdx, cols, sheetIndex) {
+  try {
+    const ss = SpreadsheetApp.openById(sheetId);
+    const sheets = ss.getSheets();
+    let sheet = sheets[Math.min(sheetIndex || 0, sheets.length - 1)];
+    if (!sheet) sheet = sheets[0];
+
+    let lastCol = sheet.getLastColumn();
+    const hdr = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+
+    for (const colName in cols) {
+      let colPos = hdr.findIndex(function(h) { return String(h).trim() === colName; }) + 1;
+      if (colPos === 0) {
+        lastCol++;
+        colPos = lastCol;
+        sheet.getRange(1, colPos).setValue(colName);
+        hdr.push(colName);
+      }
+      sheet.getRange(rowIdx + 1, colPos).setValue(cols[colName]);
+    }
+
+    Logger.log('saveColumnas OK: hoja=' + sheet.getName() + ' fila=' + (rowIdx + 1) + ' cols=' + Object.keys(cols).join(','));
+    return jsonResponse({ ok: true });
+  } catch(e) {
+    Logger.log('Error saveColumnas: ' + e.message);
+    return errorResponse('Error guardando columnas: ' + e.message, 500);
+  }
+}
+
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
 function sanitizeString(value) {
@@ -993,6 +1124,16 @@ function sanitizeCellValue(cell) {
   if (typeof cell === 'number') return cell;
   if (typeof cell === 'boolean') return cell;
   return sanitizeString(cell);
+}
+
+/** Elimina sufijos que Google Forms agrega al nombre del archivo ("(respuestas)", etc.). */
+function limpiarNombreCurso(nombre) {
+  return (nombre || '').toString()
+    .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i, '')
+    .replace(/\s*\(File responses\)\s*$/i, '')
+    .replace(/\s*\(respuestas\)\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function getDriveFolder(folderId) {
@@ -1040,4 +1181,56 @@ function jsonResponse(data) {
 function errorResponse(message, code) {
   Logger.log('Error ' + code + ': ' + message);
   return ContentService.createTextOutput(JSON.stringify({ error: sanitizeString(message), code: code })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ─── AUTENTICACIÓN ───────────────────────────────────────────────────────────
+// Usuarios almacenados en Script Properties con clave 'USUARIOS_APP'.
+// Formato JSON: [{"name":"Nombre Apellido","email":"usuario@unpa.edu.ar","hash":"<sha256_de_la_contrasena>"}]
+// Para generar el hash de una contraseña, ejecutar en el editor del script:
+//   Logger.log(hashPassword('mi_contrasena'))
+
+function handleLogin(email, pwd) {
+  try {
+    var props     = PropertiesService.getScriptProperties();
+    var usersJson = props.getProperty('USUARIOS_APP');
+    if (!usersJson) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: false, msg: 'Sin usuarios configurados. Contactar al administrador.' })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+    var usuarios = JSON.parse(usersJson);
+    var hash     = hashPassword(pwd);
+    var found    = null;
+    for (var i = 0; i < usuarios.length; i++) {
+      if (usuarios[i].email === email && usuarios[i].hash === hash) {
+        found = usuarios[i];
+        break;
+      }
+    }
+    if (!found) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: false, msg: 'Email o contraseña incorrectos.' })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+    var sessionToken = Utilities.getUuid();
+    CacheService.getScriptCache().put('sess_' + sessionToken, '1', 21600); // 6 horas
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: true, name: found.name, email: found.email, token: sessionToken })
+    ).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    Logger.log('Error en handleLogin: ' + err.message);
+    return ContentService.createTextOutput(
+      JSON.stringify({ ok: false, msg: 'Error al validar credenciales.' })
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function hashPassword(pwd) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, pwd, Utilities.Charset.UTF_8);
+  return bytes.map(function(b) { return ('0' + (b & 0xFF).toString(16)).slice(-2); }).join('');
+}
+
+function verificarToken(token) {
+  if (!token || token.length < 10) return false;
+  return CacheService.getScriptCache().get('sess_' + token) !== null;
 }

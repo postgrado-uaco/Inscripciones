@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Posgrado UACO — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -180,7 +182,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -265,13 +267,11 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="pg" id="pg-inscripciones">
       <div class="ph"><h1>Inscripciones</h1><p>Listado de cursos de posgrado con estado e inscriptos.</p></div>
       <div class="cfg" id="cfg-bar">
-        <input type="password" id="apiKey" placeholder="Gemini API Key (AIzaSy...)" oninput="saveKey()" />
-        <button onclick="cargarCursos()" id="btnCargar">Cargar cursos →</button>
+        <button onclick="cargarCursos()" id="btnCargar">Actualizar →</button>
       </div>
-      <p id="key-saved">✓ API Key guardada</p>
       <div id="al-ins"></div>
       <div id="curso-list" class="curso-list">
-        <div class="empty">Ingresá tu API Key y cargá los cursos para ver el listado.</div>
+        <div class="empty">Cargando cursos...</div>
       </div>
     </div>
 
@@ -320,28 +320,17 @@ function showPage(id) {
   if (pg) pg.classList.add('on');
   if (nv) nv.classList.add('on');
   if (id === 'inscripciones') {
-    const k = localStorage.getItem('gemini_api_key');
     const list = document.getElementById('curso-list');
-    if (k && (list.children.length === 0 || list.children[0]?.classList.contains('empty'))) {
+    if (list.children.length === 0 || list.children[0]?.classList.contains('empty')) {
       cargarCursos();
     }
   }
 }
 
-function saveKey() {
-  const k = document.getElementById('apiKey').value.trim();
-  if (k) { localStorage.setItem('gemini_api_key', k); document.getElementById('key-saved').style.display = 'block'; }
-}
-
 window.onload = function() {
   const goto = sessionStorage.getItem('goto');
   if (goto) { sessionStorage.removeItem('goto'); showPage(goto); }
-  const k = localStorage.getItem('gemini_api_key');
-  if (k) {
-    document.getElementById('apiKey').value = k;
-    document.getElementById('key-saved').style.display = 'block';
-    cargarCursos();
-  }
+  cargarCursos();
 };
 
 function actualizarIngresos(cursos) {
@@ -370,9 +359,6 @@ function findCol(header, ...terms) {
 }
 
 async function cargarCursos() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { alert('Ingresá tu Gemini API Key primero.'); return; }
-  saveKey();
   const btn = document.getElementById('btnCargar');
   btn.disabled = true; btn.innerHTML = '<span class="sp"></span> Cargando...';
   document.getElementById('al-ins').innerHTML = '';
@@ -412,7 +398,7 @@ async function cargarCursos() {
           ].forEach(k => { if (k) implData[k] = entry; });
         });
       }
-    } catch(e) { /* Sin datos de implementación */ }
+    } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
 
     // 2. Listar planillas de la carpeta
     const res = await fetch(`${SCRIPT_URL}?action=listSheets`);
@@ -458,7 +444,7 @@ async function cargarCursos() {
     });
 
     // Mostrar inmediatamente con datos de implementación
-    renderCursos(cursos, apiKey);
+    renderCursos(cursos);
     document.getElementById('al-ins').innerHTML = `<div class="al al-s">✓ ${cursos.length} cursos cargados.</div>`;
 
     // Cargar inscriptos reales en paralelo (sin bloquear la UI)
@@ -505,7 +491,7 @@ async function cargarCursos() {
 
         c._loadingInscriptos = false;
       } catch(e) { c._loadingInscriptos = false; }
-    })).then(() => { renderCursos(cursos, apiKey); actualizarIngresos(cursos); });
+    })).then(() => { renderCursos(cursos); actualizarIngresos(cursos); });
   } catch(e) {
     document.getElementById('al-ins').innerHTML = `<div class="al al-e">Error: ${e.message}</div>`;
     document.getElementById('curso-list').innerHTML = '<div class="empty">No se pudo cargar la lista.</div>';
@@ -534,7 +520,7 @@ function setSortOrder(order, btn) {
   currentSortOrder = order;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
-  if (cursosData.length) renderCursos(cursosData, localStorage.getItem('gemini_api_key') || '');
+  if (cursosData.length) renderCursos(cursosData);
 }
 
 function sortCursos(cursos) {
@@ -559,7 +545,7 @@ function sortCursos(cursos) {
   return sorted;
 }
 
-function renderCursos(cursos, apiKey) {
+function renderCursos(cursos) {
   const list = document.getElementById('curso-list');
   list.innerHTML = '';
   cursos.forEach(c => {
@@ -650,5 +636,6 @@ function renderCursos(cursos, apiKey) {
   }
 }
 </script>
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

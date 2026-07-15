@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Herramientas — Posgrado UACO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,7 +61,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av" aria-label="Usuario: Administrador" title="Administrador">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -89,6 +91,13 @@ h1,h2,h3,h4{font-family:var(--fh);}
           <div class="h-desc">Verificá los comprobantes de transferencia de cada inscripto.</div>
         </div>
       </a>
+      <a class="h-card" href="extractor_planilla_ventas.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg></div>
+        <div>
+          <div class="h-name">Generar Pagos</div>
+          <div class="h-desc">Generá la planilla de ventas con los datos de facturación.</div>
+        </div>
+      </a>
       <a class="h-card" href="controlar_titulos.html">
         <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg></div>
         <div>
@@ -96,11 +105,11 @@ h1,h2,h3,h4{font-family:var(--fh);}
           <div class="h-desc">Verificá los títulos de grado adjuntos por los inscriptos.</div>
         </div>
       </a>
-      <a class="h-card" href="extractor_planilla_ventas.html">
-        <div class="h-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h5"/></svg></div>
+      <a class="h-card" href="unir_documentacion.html">
+        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></div>
         <div>
-          <div class="h-name">Generar Pagos</div>
-          <div class="h-desc">Generá la planilla de ventas con los datos de facturación.</div>
+          <div class="h-name">Unir documentación</div>
+          <div class="h-desc">Combiná todos los documentos de un inscripto en un único PDF.</div>
         </div>
       </a>
       <a class="h-card" href="formulario_evaluacion.html">
@@ -117,16 +126,9 @@ h1,h2,h3,h4{font-family:var(--fh);}
           <div class="h-desc">Subí el acta con las notas y generá las constancias de curso aprobado en PDF.</div>
         </div>
       </a>
-      <a class="h-card" href="unir_documentacion.html">
-        <div class="h-ico"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></div>
-        <div>
-          <div class="h-name">Unir documentación</div>
-          <div class="h-desc">Combiná todos los documentos de un inscripto en un único PDF.</div>
-        </div>
-      </a>
     </div>
   </main>
 </div>
-
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

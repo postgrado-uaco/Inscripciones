@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Unir documentación — Posgrado UACO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -89,7 +91,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -169,7 +171,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcrHMjhU14gyCz46QNTmfXcktckjfhu9TBRJLgkOyacbtCtEYp-cVcgD_jyb1tR7p0KQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
 
 let cursosAll = [];
 let inscriptos = [];
@@ -260,7 +262,7 @@ async function cargarCursos() {
         if (cDenom >= 0 && cFecha >= 0)
           di.values.slice(1).forEach(r => { fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
       }
-    } catch(e) {}
+    } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
 
     // Enriquecer con formAbierto en paralelo (igual que los otros tools)
     const enriched = await Promise.all(sheets.map(async s => {
@@ -469,5 +471,6 @@ async function procesarUno(idx) {
 
 window.onload = cargarCursos;
 </script>
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(!s.exp||Date.now()>s.exp){localStorage.removeItem('pg_session');location.replace('login.html');}}catch(e){location.replace('login.html');}}();</script>
+<script src="auth.js"></script>
 <title>Detalle del curso — Posgrado UACO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -85,7 +87,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av">AD</div>
 </header>
 
 <div class="app-body">
@@ -186,7 +188,7 @@ async function cargar() {
     const stored = JSON.parse(sessionStorage.getItem('cursosData') || '[]');
     base = stored.find(c => normCurso(c.nombre) === normCurso(nombreParam)) ||
            stored.find(c => (c.name || '') === nameOrigParam) || null;
-  } catch(e) {}
+  } catch(e) { console.warn('sessionStorage cursosData inválido:', e.message); }
 
   // 2. Datos completos de la planilla de implementación
   let row = null, header = null;
@@ -206,7 +208,7 @@ async function cargar() {
         });
       }
     }
-  } catch(e) {}
+  } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
 
   if (!base && !row) {
     content.innerHTML = '<div class="empty">No se encontró información para este curso.<br>Volvé a Inicio y hacé click en "Actualizar →" antes de ver el detalle.</div>';
@@ -312,5 +314,6 @@ async function cargar() {
 
 cargar();
 </script>
+<script>AUTH.checkAuth();</script>
 </body>
 </html>

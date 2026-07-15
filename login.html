@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión — Posgrado UACO</title>
+<!-- Si el usuario ya tiene sesión activa, redirigir directamente -->
+<script>!function(){try{var s=JSON.parse(localStorage.getItem('pg_session')||'{}');if(s.exp&&Date.now()<s.exp){var r=sessionStorage.getItem('auth_redirect')||'index.html';location.replace(r);}}catch(e){}}();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Google Identity Services eliminado: autenticación vía Apps Script -->
+<style>
+:root {
+  --primary:#214b46; --primary-c:#3a635e; --on-p:#fff; --on-pc:#b2ddd7;
+  --surf:#f9f9f8; --on-s:#1a1c1b; --on-sv:#404847; --ov:#c0c8c6;
+  --fh:'Public Sans',sans-serif; --fb:'Inter',sans-serif;
+  --r:12px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--fb);background:var(--surf);color:var(--on-s);}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+
+.login-card{
+  background:#fff;
+  border:1px solid var(--ov);
+  border-radius:var(--r);
+  box-shadow:var(--sh);
+  padding:40px 44px 44px;
+  width:100%;
+  max-width:400px;
+  text-align:center;
+}
+
+.login-logo{
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;
+}
+.login-logo img{max-width:220px;width:100%;height:auto;}
+
+.login-title{
+  font-family:var(--fh);
+  font-size:20px;font-weight:900;
+  color:var(--on-s);
+  letter-spacing:-.02em;
+  margin-bottom:4px;
+}
+.login-sub{font-size:12.5px;color:var(--on-sv);line-height:1.5;margin-bottom:32px;}
+
+.login-divider{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  color:var(--on-sv);font-size:12px;
+}
+.login-divider::before,.login-divider::after{
+  content:'';flex:1;height:1px;background:var(--ov);
+}
+
+/* Formulario */
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;text-align:left;}
+.form-row label{font-size:12px;font-weight:600;color:var(--on-sv);}
+.form-row input{
+  padding:10px 12px;
+  border:1.5px solid var(--ov);
+  border-radius:8px;
+  font-size:14px;
+  font-family:var(--fb);
+  color:var(--on-s);
+  background:#fff;
+  outline:none;
+  transition:border-color .15s;
+}
+.form-row input:focus{border-color:var(--primary);}
+.btn-login{
+  width:100%;padding:11px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-size:14px;font-weight:600;
+  font-family:var(--fb);
+  cursor:pointer;
+  transition:background .15s;
+  margin-top:4px;
+}
+.btn-login:hover{background:var(--primary-c);}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;}
+.lockout-msg{display:none;font-size:12.5px;color:var(--on-sv);margin-top:12px;}
+
+.login-footer{margin-top:28px;font-size:11.5px;color:var(--on-sv);line-height:1.6;}
+
+/* Mensaje de error */
+.login-error{
+  display:none;
+  background:#fff0f0;border:1px solid #f5c6c6;
+  border-radius:8px;padding:10px 14px;
+  font-size:13px;color:#b71c1c;
+  margin-bottom:16px;text-align:left;
+}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+
+  <div class="login-logo">
+    <img src="Logo_web_UACO_0.jpg" alt="Unidad Académica Caleta Olivia - UNPA">
+  </div>
+
+  <h1 class="login-title">Cursos de Postgrado</h1>
+  <p class="login-sub">Secretaría de Investigación y Postgrado</p>
+
+  <div class="login-error" id="login-error"></div>
+
+  <div class="login-divider">Ingresá tus credenciales</div>
+
+  <form id="login-form" autocomplete="on">
+    <div class="form-row">
+      <label for="inp-email">Email
+      </label>
+      <input type="email" id="inp-email" name="email" placeholder="usuario@unpa.edu.ar" required autocomplete="username">
+    </div>
+    <div class="form-row">
+      <label for="inp-pwd">Contraseña</label>
+      <input type="password" id="inp-pwd" name="password" placeholder="Contraseña" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-login" id="btn-login">Iniciar sesión</button>
+    <p class="lockout-msg" id="lockout-msg"></p>
+  </form>
+
+  <div class="login-footer">
+    Solo pueden acceder las cuentas autorizadas.<br>
+    La sesión dura 6 horas.
+  </div>
+
+</div>
+
+<script src="auth.js"></script>
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+var ATTEMPTS_KEY = 'pg_login_attempts';
+var MAX_ATTEMPTS = 5;
+var LOCKOUT_MS   = 60 * 1000; // 1 minuto
+
+function getAttempts() {
+  try { return JSON.parse(localStorage.getItem(ATTEMPTS_KEY) || '{"count":0,"until":0}'); } catch(e) { return {count:0,until:0}; }
+}
+function setAttempts(a) { localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(a)); }
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  var attempts = getAttempts();
+  if (attempts.until > Date.now()) {
+    var seg = Math.ceil((attempts.until - Date.now()) / 1000);
+    mostrarError('Demasiados intentos. Esperá ' + seg + ' segundo(s).');
+    document.getElementById('lockout-msg').style.display = 'block';
+    document.getElementById('lockout-msg').textContent = '';
+    return;
+  }
+
+  var email = document.getElementById('inp-email').value.trim();
+  var pwd   = document.getElementById('inp-pwd').value;
+  var btn   = document.getElementById('btn-login');
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  ocultarError();
+
+  try {
+    var res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', email: email, pwd: pwd })
+    });
+    var data = await res.json();
+
+    if (data.ok) {
+      localStorage.removeItem(ATTEMPTS_KEY);
+      AUTH.saveSession(data.name, data.email, data.token);
+      var redirect = sessionStorage.getItem('auth_redirect') || 'index.html';
+      sessionStorage.removeItem('auth_redirect');
+      window.location.replace(redirect);
+    } else {
+      attempts.count++;
+      if (attempts.count >= MAX_ATTEMPTS) {
+        attempts.until = Date.now() + LOCKOUT_MS;
+        attempts.count = 0;
+      }
+      setAttempts(attempts);
+      mostrarError(data.msg || 'Credenciales incorrectas.');
+      btn.disabled = false;
+      btn.textContent = 'Iniciar sesión';
+    }
+  } catch (err) {
+    mostrarError('Error de red. Verificá tu conexión e intentá de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesión';
+  }
+});
+
+function mostrarError(msg) {
+  var el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function ocultarError() {
+  var el = document.getElementById('login-error');
+  el.textContent = '';
+  el.style.display = 'none';
+}
+</script>
+</body>
+</html>
