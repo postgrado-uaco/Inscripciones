@@ -92,7 +92,7 @@ tr:hover td{background:var(--surf-lo);}
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av" id="user-av">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
@@ -158,7 +158,7 @@ tr:hover td{background:var(--surf-lo);}
       <div id="tbl-wrap" class="tbl-wrap" style="display:none">
         <div class="tbl-hdr">
           <div class="tbl-hdr-title" id="tbl-title">Resultados</div>
-          <button class="btn btn-g" style="padding:7px 14px;font-size:12.5px" onclick="exportXLS()">⬇ Descargar .xlsx</button>
+          <button class="btn btn-g" style="padding:7px 14px;font-size:12.5px" onclick="exportXLS()">⬇ Descargar .xls</button>
         </div>
         <div class="tbl-scroll">
           <table>
@@ -193,8 +193,11 @@ const COL_ESTADO     = 'Estado titulo';
 
 let results = [];
 let cursoActual = {};
+let apiKey = '';
 let sheetIdActual = '';
 let doneCount = 0, errorCount = 0;
+
+function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
 
 function normNombre(n) {
   return n.replace(/^\d{4}\s*[-–]\s*/i,'')
@@ -270,7 +273,7 @@ async function cargarCursos() {
           di.values.slice(1).forEach(r => { fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
         }
       }
-    } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
+    } catch(e) {}
 
     // Enriquecer con conteos en paralelo
     const enriched = await Promise.all(sheets.map(async s => {
@@ -393,6 +396,11 @@ function volverCursos() {
 
 // ── Iniciar procesamiento ──────────────────────────────────
 async function iniciarProceso(sheetId, nombre, sheetIndex) {
+  apiKey = getApiKey();
+  if (!apiKey) {
+    document.getElementById('al-cursos').innerHTML = `<div class="al al-e">⚠ No se encontró la API Key. Configurala desde la página principal.</div>`;
+    return;
+  }
 
   sheetIdActual = sheetId;
   window._sheetIndex = sheetIndex || 0;
@@ -479,12 +487,26 @@ async function procesarFila(i) {
   if (!r.fileId) { r.status = 'sin-titulo'; doneCount++; return; }
   r.status = 'processing';
   try {
-    // Procesar mediante backend (la API key de Gemini queda segura en el servidor)
-    const pr = await fetch(`${SCRIPT_URL}?action=processFile&fileId=${encodeURIComponent(r.fileId)}&tipo=titulo`);
+    const pr = await fetch(`${SCRIPT_URL}?action=getFile&fileId=${encodeURIComponent(r.fileId)}`);
     const pd = await pr.json();
-    if (pd.error) throw new Error(pd.error);
-    const parsed = pd.result;
-    if (!parsed) throw new Error('No se pudo interpretar el título.');
+    if (pd.error) throw new Error('No se pudo acceder al archivo adjunto.');
+    if (!pd.base64) throw new Error('El archivo adjunto está vacío.');
+
+    const gemRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[
+          {inline_data:{mime_type: pd.mimeType||'application/pdf', data: pd.base64}},
+          {text:`Título universitario argentino. Responde SOLO JSON sin texto extra:\n{"nombre_apellido":"...","carrera":"...","universidad":"..."}\nnombre_apellido: nombre completo del graduado tal como figura en el título. carrera: nombre completo de la carrera o título otorgado. universidad: nombre completo de la institución. null si no podés leer.`}
+        ]}], generationConfig:{temperature:0} })
+      }
+    );
+    const gd = await gemRes.json();
+    if (gd.error) throw new Error('Error al procesar con IA: ' + gd.error.message);
+    const txt = gd.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(txt.trim()); }
+    catch { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); }
 
     r.nombreTit   = parsed.nombre_apellido || '';
     r.carrera     = parsed.carrera         || '';
@@ -515,27 +537,20 @@ async function procesarFila(i) {
 
 // ── Guardar en planilla ────────────────────────────────────
 async function guardarEnPlanilla(r) {
-  const si = window._sheetIndex || 0;
-  try {
-    const cols = {
-      [COL_NOMBRE_TIT]:  r.nombreTit   || '',
-      [COL_CARRERA]:     r.carrera     || '',
-      [COL_UNIVERSIDAD]: r.universidad || '',
-      [COL_ESTADO]:      r.nulos && r.nulos.length > 0 ? 'Parcial: sin ' + r.nulos.join(', ') : 'OK'
-    };
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'saveColumnas', sheetId: sheetIdActual, rowIdx: r.rowIdx, sheetIndex: si, cols })
-    });
-    const data = await res.json();
-    if (data.error) {
-      console.warn(`Error guardando fila ${r.rowIdx}:`, data.error);
-      addLog(`⚠ No se guardó fila ${r.rowIdx}: ${data.error}`);
+  const si   = window._sheetIndex || 0;
+  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetIdActual)}&rowIdx=${r.rowIdx}&sheetIndex=${si}`;
+  const saves = [
+    { col: COL_NOMBRE_TIT,  val: r.nombreTit   },
+    { col: COL_CARRERA,     val: r.carrera     },
+    { col: COL_UNIVERSIDAD, val: r.universidad },
+    { col: COL_ESTADO,      val: r.nulos && r.nulos.length > 0 ? 'Parcial: sin ' + r.nulos.join(', ') : 'OK' }
+  ];
+  for (const s of saves) {
+    try {
+      const res  = await fetch(`${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val||'')}`);
+      const data = await res.json();
+    } catch(e) {
     }
-  } catch(e) {
-    console.warn(`Error en guardarEnPlanilla fila ${r.rowIdx}:`, e.message);
-    addLog(`⚠ Error al guardar en planilla: ${e.message}`);
   }
 }
 
@@ -589,7 +604,7 @@ function exportXLS() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Títulos');
   const safe = (cursoActual.nombre||'planilla').replace(/[^a-zA-Z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
-  XLSX.writeFile(wb, `Titulos-${safe}.xlsx`, {bookType:'xlsx'});
+  XLSX.writeFile(wb, `Titulos-${safe}.xls`, {bookType:'xls'});
 }
 
 window.onload = cargarCursos;

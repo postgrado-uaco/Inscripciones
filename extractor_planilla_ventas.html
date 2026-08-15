@@ -128,7 +128,7 @@ tr:hover td{background:var(--surf-lo);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av" id="user-av">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
@@ -202,7 +202,7 @@ tr:hover td{background:var(--surf-lo);}
       <div id="tbl-wrap" class="tbl-wrap" style="display:none">
         <div class="tbl-header">
           <div class="tbl-title" id="tbl-title">Resultados</div>
-          <button class="btn btn-g" onclick="exportXLS()" style="padding:7px 14px;font-size:12.5px">⬇ Descargar .xlsx</button>
+          <button class="btn btn-g" onclick="exportXLS()" style="padding:7px 14px;font-size:12.5px">⬇ Descargar .xls</button>
         </div>
         <div class="tbl-scroll">
           <table>
@@ -241,9 +241,6 @@ const COL_APELLIDO_DNI = 'Apellido (DNI)';
 const COL_NOMBRE_DNI   = 'Nombre (DNI)';
 const COL_NUMERO_DNI   = 'Número DNI';
 const COL_ESTADO_DNI   = 'Estado DNI';
-const COL_MONTO_COMP   = 'Monto comprobante';
-const COL_FECHA_COMP   = 'Fecha comprobante';
-const COL_ID_TX_COMP   = 'Id transacción';
 
 let results     = [];
 let cursoActual = {};
@@ -408,7 +405,7 @@ async function cargarCursos() {
           di.values.slice(1).forEach(function(r){ fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
         }
       }
-    } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
+    } catch(e) {}
 
     // Enriquecer con conteos en paralelo
     Promise.all(sheets.map(async function(s) {
@@ -686,8 +683,6 @@ async function procesarFila(i) {
       r.id_transaccion = parsed.id_transaccion || '';
       if (!r.importe) nulos.push('importe');
       if (!r.fecha)   nulos.push('fecha');
-      // Guardar en la planilla para no reprocesar en la próxima carga
-      guardarComprobanteEnPlanilla(r);
     } catch(e) {
       errores.push('Comprobante: ' + e.message);
     }
@@ -736,41 +731,21 @@ async function procesarFila(i) {
 }
 
 async function guardarDNIEnPlanilla(r) {
-  const si      = window._sheetIndex || 0;
+  const si   = window._sheetIndex || 0;
   const sheetId = cursoActual.sheetId;
-  try {
-    const cols = {
-      [COL_APELLIDO_DNI]: r.apellido_dni || '',
-      [COL_NOMBRE_DNI]:   r.nombre_dni   || '',
-      [COL_NUMERO_DNI]:   r.dni          || '',
-      [COL_ESTADO_DNI]:   'OK'
-    };
-    await fetch(NEW_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'saveColumnas', sheetId, rowIdx: r.rowIdx, sheetIndex: si, cols })
-    });
-  } catch(e) {
-    console.warn('Error guardando DNI en planilla:', e.message);
-  }
-}
-
-async function guardarComprobanteEnPlanilla(r) {
-  const si      = window._sheetIndex || 0;
-  const sheetId = cursoActual.sheetId;
-  try {
-    const cols = {
-      [COL_MONTO_COMP]: r.importe        || '',
-      [COL_FECHA_COMP]: r.fecha          || '',
-      [COL_ID_TX_COMP]: r.id_transaccion || ''
-    };
-    await fetch(NEW_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'saveColumnas', sheetId, rowIdx: r.rowIdx, sheetIndex: si, cols })
-    });
-  } catch(e) {
-    console.warn('Error guardando comprobante en planilla:', e.message);
+  const base = NEW_SCRIPT_URL + '?action=saveColumna&sheetId=' + encodeURIComponent(sheetId) + '&rowIdx=' + r.rowIdx + '&sheetIndex=' + si;
+  const saves = [
+    { col: COL_APELLIDO_DNI, val: r.apellido_dni || '' },
+    { col: COL_NOMBRE_DNI,   val: r.nombre_dni   || '' },
+    { col: COL_NUMERO_DNI,   val: r.dni          || '' },
+    { col: COL_ESTADO_DNI,   val: 'OK'                 }
+  ];
+  for (const s of saves) {
+    try {
+      await fetch(base + '&colName=' + encodeURIComponent(s.col) + '&value=' + encodeURIComponent(s.val));
+    } catch(e) {
+      console.warn('Error guardando DNI en planilla:', e.message);
+    }
   }
 }
 
@@ -893,7 +868,7 @@ function exportXLS() {
   ];
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
-  XLSX.writeFile(wb, 'Ventas-' + (leyenda||'planilla') + '.xlsx', {bookType:'xlsx'});
+  XLSX.writeFile(wb, 'Ventas-' + (leyenda||'planilla') + '.xls', {bookType:'xls'});
 }
 
 window.onload = cargarCursos;

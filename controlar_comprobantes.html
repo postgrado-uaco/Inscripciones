@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>
 :root{
   --primary:#214b46;--primary-c:#3a635e;--on-p:#fff;--on-pc:#b2ddd7;
@@ -89,13 +90,23 @@ tr:hover td{background:var(--surf-lo);}
 .tag-err{color:var(--err);font-weight:600;}
 .tag-sc{color:var(--on-sv);}
 .tag-proc{color:#6d4c00;}
+.tag-manual{color:#6a1b9a;font-weight:600;}
+.btn-manual{padding:3px 8px;font-size:11px;border-radius:6px;border:1px solid var(--ov);background:#fff;color:var(--on-sv);cursor:pointer;font-family:var(--fb);margin-left:6px;white-space:nowrap;}
+.btn-manual:hover{border-color:#6a1b9a;color:#6a1b9a;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal-overlay.open{display:flex;}
+.modal-card{background:#fff;border-radius:var(--r);box-shadow:var(--shm);padding:22px;width:420px;max-width:92vw;}
+.modal-card h3{font-size:16px;margin-bottom:4px;}
+.modal-card label{display:block;font-size:12px;font-weight:600;color:var(--on-sv);margin:12px 0 4px;}
+.modal-card input,.modal-card textarea{width:100%;padding:8px 10px;border:1px solid var(--ov);border-radius:var(--rsm);font-family:var(--fb);font-size:13px;}
+.modal-card textarea{resize:vertical;min-height:60px;}
 </style>
 </head>
 <body>
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av" id="user-av">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
@@ -155,18 +166,25 @@ tr:hover td{background:var(--surf-lo);}
         <div class="prog-lbl"><span id="proc-txt">0 de 0</span><span id="proc-pct">0%</span></div>
         <div class="prog-bar-bg"><div class="prog-bar-fill" id="proc-bar" style="width:0%"></div></div>
         <div id="proc-errs" style="font-size:12px;color:var(--err);margin-top:6px;font-weight:600;display:none"></div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn" id="btnDetener" style="background:var(--err);display:none" onclick="detenerProceso()">⏹ Detener</button>
+        </div>
         <div id="proc-log" class="prog-log">Iniciando...</div>
       </div>
 
       <div id="tbl-wrap" class="tbl-wrap" style="display:none">
         <div class="tbl-hdr">
           <div class="tbl-hdr-title" id="tbl-title">Resultados</div>
-          <button class="btn btn-g" style="padding:7px 14px;font-size:12.5px" onclick="exportXLS()">⬇ Descargar .xlsx</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-g" id="btnGuardarLote" disabled onclick="guardarLoteEnDrive()">☁ Guardar seleccionados en Drive</button>
+            <button class="btn btn-g" style="padding:7px 14px;font-size:12.5px" onclick="exportXLS()">⬇ Descargar .xls</button>
+          </div>
         </div>
+        <div id="loteStatus" style="font-size:12px;color:var(--on-sv);padding:0 18px;margin-top:-4px"></div>
         <div class="tbl-scroll">
           <table>
             <thead><tr>
-              <th>#</th><th>Apellido y nombre</th><th>Tipo inscripción</th>
+              <th><input type="checkbox" id="chkTodos" onchange="toggleTodos(this)"></th><th>#</th><th>Apellido y nombre</th><th>Tipo inscripción</th>
               <th>Monto</th><th>Fecha</th><th>CBU Destino</th><th>Estado</th>
             </tr></thead>
             <tbody id="tbl-body"></tbody>
@@ -182,6 +200,24 @@ tr:hover td{background:var(--surf-lo);}
   </main>
 </div>
 
+<div class="modal-overlay" id="modalManual">
+  <div class="modal-card">
+    <h3>Marcar pago sin comprobante</h3>
+    <p id="modalManualNombre" style="font-weight:600;color:var(--primary);font-size:13px"></p>
+    <label>Monto ($)</label>
+    <input type="number" id="manualMonto" placeholder="Ej: 50000">
+    <label>Fecha del pago (opcional)</label>
+    <input type="text" id="manualFecha" placeholder="DD-MM-AAAA">
+    <label>Nota / justificación (obligatoria)</label>
+    <textarea id="manualNota" placeholder="Ej: depositó en efectivo en Secretaría el 10/08, sin comprobante digital"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn" style="background:var(--surf-hi);color:var(--on-s)" onclick="cerrarModalManual()">Cancelar</button>
+      <button class="btn" id="btnConfirmarManual" onclick="confirmarManual()">Guardar</button>
+    </div>
+    <div id="modalManualMsg" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+  </div>
+</div>
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
 
@@ -191,11 +227,88 @@ const COL_FECHA  = 'Fecha comprobante';
 const COL_CBU    = 'CBU Destino';
 const COL_ID_TX  = 'ID Transacción';
 const COL_ESTADO = 'Estado comprobante';
+const COL_NOTA_MANUAL = 'Nota verificación manual';
 
 let results = [];
 let cursoActual = {};
+let apiKey = '';
 let sheetIdActual = '';
+
+// ── Marcar pago manual (sin comprobante) ───────────────────
+let manualIdx = null;
+
+function abrirModalManual(idx) {
+  manualIdx = idx;
+  const r = results[idx];
+  document.getElementById('modalManualNombre').textContent = r.nombre || '';
+  document.getElementById('manualMonto').value = r.monto || '';
+  document.getElementById('manualFecha').value = r.fecha || '';
+  document.getElementById('manualNota').value = '';
+  document.getElementById('modalManualMsg').textContent = '';
+  document.getElementById('modalManual').classList.add('open');
+}
+
+function cerrarModalManual() {
+  document.getElementById('modalManual').classList.remove('open');
+  manualIdx = null;
+}
+
+async function confirmarManual() {
+  const monto = document.getElementById('manualMonto').value.trim();
+  const fecha = document.getElementById('manualFecha').value.trim();
+  const nota  = document.getElementById('manualNota').value.trim();
+  const msg   = document.getElementById('modalManualMsg');
+  const btn   = document.getElementById('btnConfirmarManual');
+
+  if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+    msg.style.color = 'var(--err)'; msg.textContent = 'Ingresá un monto válido.'; return;
+  }
+  if (!nota) {
+    msg.style.color = 'var(--err)'; msg.textContent = 'La nota/justificación es obligatoria.'; return;
+  }
+
+  const r = results[manualIdx];
+  btn.disabled = true;
+  msg.style.color = 'var(--on-sv)'; msg.textContent = 'Guardando...';
+
+  const si = window._sheetIndex || 0;
+  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetIdActual)}&rowIdx=${r.rowIdx}&sheetIndex=${si}`;
+  // Orden importante: Monto antes que Estado (para que el acumulador de
+  // ingresos calcule bien la diferencia si se está corrigiendo una fila
+  // que ya estaba OK).
+  const saves = [
+    { col: COL_MONTO,       val: monto },
+    { col: COL_FECHA,       val: fecha || '' },
+    { col: COL_NOTA_MANUAL, val: nota },
+    { col: COL_ESTADO,      val: 'OK' }
+  ];
+
+  try {
+    for (const s of saves) {
+      const url = `${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val)}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      let data; try { data = JSON.parse(text); } catch(e) { data = { error: text }; }
+      if (data.error) throw new Error(data.error);
+    }
+
+    r.monto = String(Math.round(parseFloat(monto)));
+    r.fecha = fecha || '';
+    r.notaManual = nota;
+    r.status = 'ok';
+    r.error = '';
+    addLog(`✎ ${r.nombre}: pago manual registrado — $${parseInt(r.monto).toLocaleString('es-AR')} (${nota})`);
+    cerrarModalManual();
+    renderTabla();
+  } catch(e) {
+    msg.style.color = 'var(--err)'; msg.textContent = '✗ ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
 let doneCount = 0, errorCount = 0;
+
+function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
 
 function normNombre(n) {
   return n.replace(/^\d{4}\s*[-–]\s*/i,'')
@@ -203,6 +316,16 @@ function normNombre(n) {
     .replace(/\s*\(respuestas de formulario\s*\d*\)\s*$/i,'')
     .replace(/\s*\(respuestas\)\s*$/i,'')
     .replace(/[\u0022\u0027\u0060\u00AB\u00BB\u201C\u201D\u2018\u2019]/g,'')
+    .trim();
+}
+
+// Nombre del curso "limpio", para usar en nombres de archivo: sin el
+// prefijo de tipo (Curso/Seminario/Taller de Postgrado) y sin caracteres
+// que Windows/Drive no aceptan en nombres de archivo.
+function limpiarNombreCurso(nombre) {
+  return normNombre(nombre || '')
+    .replace(/^(taller|curso|seminario)(\s+de\s+postgrado)?\s*/i, '')
+    .replace(/[\\/:*?"<>|]/g, '-')
     .trim();
 }
 
@@ -273,7 +396,7 @@ async function cargarCursos() {
           di.values.slice(1).forEach(r => { fechaMap[normCursoImpl(r[cDenom])] = (r[cFecha]||'').toString().trim(); });
         }
       }
-    } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
+    } catch(e) {}
 
     // Luego enriquecer con datos de cada planilla en paralelo
     const enriched = await Promise.all(sheets.map(async s => {
@@ -284,11 +407,18 @@ async function cargarCursos() {
         const rows = (d.values || []).slice(1).filter(r => r && r.length > 0);
         const hdr = d.values?.[0] || [];
         const norm = h => h?.toString().trim().toLowerCase().replace(/\s+/g,' ');
-        const estadoIdx = hdr.findIndex(h => norm(h) === norm(COL_ESTADO));
+        const exact = h => (h||'').toString().trim();
+        // Nombres exactos (no difusos), para no confundirse cuando una
+        // planilla tiene las dos columnas de monto a la vez (a medio migrar).
+        const montoNuevoIdx = hdr.findIndex(h => exact(h) === 'Monto comprobante');
+        const estadoIdx     = hdr.findIndex(h => exact(h) === COL_ESTADO);
+        const montoViejoIdx = hdr.findIndex(h => exact(h) === 'Monto verificado');
         const total = rows.length;
-        const procesados = estadoIdx >= 0
-          ? rows.filter(r => r[estadoIdx]?.toString().trim() === 'OK').length
-          : 0;
+        const procesados = rows.filter(r => {
+          if (estadoIdx >= 0 && montoNuevoIdx >= 0 && (r[estadoIdx]||'').toString().trim() === 'OK') return true;
+          if (montoViejoIdx >= 0 && (r[montoViejoIdx]||'').toString().trim()) return true;
+          return false;
+        }).length;
         return {...s, procesados, total, sheetIndex: d.sheetIndex || 0, abierto: d.formAbierto !== false, fecha: fechaMap[normCursoImpl(s.name)] || ''};
       } catch(e) {
         return {...s, procesados: 0, total: 0, abierto: true, fecha: fechaMap[normCursoImpl(s.name)] || ''};
@@ -404,13 +534,32 @@ function volverCursos() {
 }
 
 // ── Iniciar procesamiento ──────────────────────────────────
+let detenido = false;
+
+function detenerProceso() {
+  detenido = true;
+  document.getElementById('btnDetener').disabled = true;
+  addLog('⏹ Deteniendo... (termina la fila en curso y para ahí)');
+}
+
 async function iniciarProceso(sheetId, nombre) {
+  apiKey = getApiKey();
+  if (!apiKey) {
+    document.getElementById('al-cursos').innerHTML = `<div class="al al-w">⚠ No se encontró la API Key. Configurala desde la página principal.</div>`;
+    return;
+  }
 
   sheetIdActual = sheetId;
   // Guardar sheetIndex del elemento si está disponible
   window._sheetIndex = 0;
   cursoActual = { sheetId, nombre };
   doneCount = 0; errorCount = 0; results = [];
+  detenido = false;
+  document.getElementById('btnDetener').style.display = 'inline-flex';
+  document.getElementById('btnDetener').disabled = false;
+  document.getElementById('btnGuardarLote').disabled = true;
+  document.getElementById('btnGuardarLote').textContent = '☁ Guardar seleccionados en Drive';
+  document.getElementById('loteStatus').textContent = '';
 
   document.getElementById('step-cursos').style.display = 'none';
   document.getElementById('step-proceso').style.display = 'block';
@@ -447,6 +596,9 @@ async function iniciarProceso(sheetId, nombre) {
     const cbuYaIdx    = hdr.findIndex(h => norm(h) === norm(COL_CBU));
     const idTxYaIdx   = hdr.findIndex(h => norm(h) === norm(COL_ID_TX));
     const estadoYaIdx = hdr.findIndex(h => norm(h) === norm(COL_ESTADO));
+    // Esquema viejo de algunos cursos (sin columna de estado): si esta fila
+    // puntual ya tiene un monto cargado ahí, también se considera procesada.
+    const montoViejoIdx = hdr.findIndex(h => norm(h) === norm('Monto verificado'));
 
     addLog(`${body.length} inscriptos encontrados.`);
 
@@ -455,7 +607,9 @@ async function iniciarProceso(sheetId, nombre) {
       const lExt = compExtIdx >= 0 ? r[compExtIdx]?.toString() || '' : '';
       const link = lInt.startsWith('http') || extractFileId(lInt) ? lInt
                  : lExt.startsWith('http') || extractFileId(lExt) ? lExt : '';
-      const yaProc = estadoYaIdx >= 0 && r[estadoYaIdx]?.toString().trim() === 'OK';
+      const yaProcNuevo = estadoYaIdx >= 0 && r[estadoYaIdx]?.toString().trim() === 'OK';
+      const yaProcViejo = !yaProcNuevo && montoViejoIdx >= 0 && !!r[montoViejoIdx]?.toString().trim();
+      const yaProc = yaProcNuevo || yaProcViejo;
 
       return {
         rowIdx: i + 1, // 1-based para saveColumna
@@ -463,9 +617,10 @@ async function iniciarProceso(sheetId, nombre) {
         tipo:   tipoIdx >= 0 ? r[tipoIdx]?.toString().trim() || '' : '',
         link:   link,
         fileId: extractFileId(link),
-        monto:  yaProc && montoYaIdx >= 0 ? r[montoYaIdx]?.toString() || '' : '',
-        fecha:  yaProc && fechaYaIdx >= 0 ? r[fechaYaIdx]?.toString() || '' : '',
-        cbu:    yaProc && cbuYaIdx >= 0   ? r[cbuYaIdx]?.toString()   || '' : '',
+        monto:  yaProcNuevo && montoYaIdx >= 0 ? r[montoYaIdx]?.toString() || ''
+               : yaProcViejo ? r[montoViejoIdx]?.toString() || '' : '',
+        fecha:  yaProcNuevo && fechaYaIdx >= 0 ? r[fechaYaIdx]?.toString() || '' : '',
+        cbu:    yaProcNuevo && cbuYaIdx >= 0   ? r[cbuYaIdx]?.toString()   || '' : '',
         id_transaccion: '',
         id_transaccion: '',
         status: yaProc ? 'skip' : (link ? 'pending' : 'sin-comprobante'),
@@ -482,18 +637,21 @@ async function iniciarProceso(sheetId, nombre) {
     document.getElementById('proc-title').textContent = 'Procesando comprobantes...';
 
     for (let i = 0; i < results.length; i++) {
+      if (detenido) { addLog(`⏹ Procesamiento detenido por el usuario (fila ${i + 1} de ${results.length}).`); break; }
       if (results[i].status === 'pending') await procesarFila(i);
       setProg(i + 1, results.length);
       renderTabla();
       await new Promise(r => setTimeout(r, 200));
     }
 
-    document.getElementById('proc-title').textContent = 'Procesamiento completo';
+    document.getElementById('btnDetener').style.display = 'none';
+    document.getElementById('proc-title').textContent = detenido ? 'Procesamiento detenido' : 'Procesamiento completo';
     document.getElementById('tbl-wrap').style.display = 'block';
     renderTabla();
-    addLog('✓ Procesamiento finalizado.');
+    addLog(detenido ? '⏹ Procesamiento detenido.' : '✓ Procesamiento finalizado.');
 
   } catch(e) {
+    document.getElementById('btnDetener').style.display = 'none';
     document.getElementById('proc-title').textContent = 'Error';
     addLog('✗ ' + e.message);
   }
@@ -506,12 +664,28 @@ async function procesarFila(i) {
 
   r.status = 'processing';
   try {
-    // Procesar mediante backend (la API key de Gemini queda segura en el servidor)
-    const pr = await fetch(`${SCRIPT_URL}?action=processFile&fileId=${encodeURIComponent(r.fileId)}&tipo=comprobante`);
+    // Obtener archivo como base64
+    const pr = await fetch(`${SCRIPT_URL}?action=getFile&fileId=${encodeURIComponent(r.fileId)}`);
     const pd = await pr.json();
-    if (pd.error) throw new Error(pd.error);
-    const parsed = pd.result;
-    if (!parsed) throw new Error('No se pudo interpretar el comprobante.');
+    if (pd.error) throw new Error('No se pudo acceder al archivo adjunto.');
+    if (!pd.base64) throw new Error('El archivo adjunto está vacío.');
+
+    // Llamar Gemini
+    const gemRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{parts:[
+          {inline_data:{mime_type: pd.mimeType||'image/jpeg', data: pd.base64}},
+          {text:`Comprobante de transferencia bancaria argentina. Responde SOLO JSON sin texto extra:\n{"monto":"...","fecha":"...","cbu_destinatario":"...","id_transaccion":"..."}\nmonto: solo dígitos enteros sin decimales ni puntos (ej: 48000). fecha: DD-MM-AAAA. cbu_destinatario: CBU o CVU del destinatario, solo dígitos. id_transaccion: número o código de operación/comprobante. null si no podés leer.`}
+        ]}], generationConfig:{temperature:0} })
+      }
+    );
+    const gd = await gemRes.json();
+    if (gd.error) throw new Error('Error al procesar con IA: ' + gd.error.message);
+    const txt = gd.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let parsed;
+    try { parsed = JSON.parse(txt.trim()); }
+    catch { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); }
 
     r.monto      = parsed.monto ? String(Math.round(parseFloat(parsed.monto))) : '';
     r.fecha      = parsed.fecha || '';
@@ -537,29 +711,31 @@ async function procesarFila(i) {
 // ── Guardar en planilla ────────────────────────────────────
 async function guardarEnPlanilla(r) {
   const si = window._sheetIndex || 0;
-  try {
-    addLog(`📤 Guardando fila ${r.rowIdx}, sheetId: ${sheetIdActual.substring(0,15)}...`);
-    const cols = {
-      [COL_MONTO]:  r.monto || '',
-      [COL_FECHA]:  r.fecha || '',
-      [COL_CBU]:    r.cbu   || '',
-      [COL_ID_TX]:  r.id_transaccion || '',
-      [COL_ESTADO]: 'OK'
-    };
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'saveColumnas', sheetId: sheetIdActual, rowIdx: r.rowIdx, sheetIndex: si, cols })
-    });
-    const text = await res.text();
-    let data; try { data = JSON.parse(text); } catch(e) { data = {error: text}; }
-    if (data.error) {
-      console.warn(`Error guardando fila ${r.rowIdx}:`, data.error);
-      addLog(`⚠ No se guardó fila ${r.rowIdx}: ${data.error}`);
+  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetIdActual)}&rowIdx=${r.rowIdx}&sheetIndex=${si}`;
+  addLog(`📤 Guardando fila ${r.rowIdx}, sheetId: ${sheetIdActual.substring(0,15)}...`);
+  const saves = [
+    { col: COL_MONTO,  val: r.monto || '' },
+    { col: COL_FECHA,  val: r.fecha || '' },
+    { col: COL_CBU,    val: r.cbu   || '' },
+    { col: COL_ID_TX,  val: r.id_transaccion || '' },
+    { col: COL_ESTADO, val: 'OK' }
+  ];
+  // GET simple, uno por columna: sin preflight, es el patrón que ya
+  // funciona confiablemente con Apps Script (igual que Controlar títulos).
+  for (const s of saves) {
+    try {
+      const url = `${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val)}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      let data; try { data = JSON.parse(text); } catch(e) { data = { error: text }; }
+      if (data.error) {
+        console.warn(`Error guardando fila ${r.rowIdx} col ${s.col}:`, data.error);
+        addLog(`⚠ No se guardó "${s.col}" fila ${r.rowIdx}: ${data.error}`);
+      }
+    } catch(e) {
+      console.warn(`Error en guardarEnPlanilla fila ${r.rowIdx} col ${s.col}:`, e.message);
+      addLog(`⚠ Error al guardar "${s.col}" en planilla: ${e.message}`);
     }
-  } catch(e) {
-    console.warn(`Error en guardarEnPlanilla fila ${r.rowIdx}:`, e.message);
-    addLog(`⚠ Error al guardar en planilla: ${e.message}`);
   }
 }
 
@@ -574,16 +750,29 @@ function renderTabla() {
     'sin-comprobante': '<span class="tag-sc">Sin comprobante</span>'
   };
 
-  document.getElementById('tbl-body').innerHTML = results.map((r, i) => `
+  document.getElementById('tbl-body').innerHTML = results.map((r, i) => {
+    const puedeIncluirseEnLote = (r.status === 'ok' || r.status === 'skip') && r.fileId;
+    const checked = r.status === 'ok' ? 'checked' : ''; // recién procesados: tildados por defecto
+    const chk = puedeIncluirseEnLote
+      ? `<input type="checkbox" class="chk-lote" data-idx="${i}" ${checked} onchange="actualizarBotonLote()">`
+      : '';
+    const manualTag = r.notaManual ? `<div class="tag-manual" style="font-size:11px;margin-top:2px" title="${r.notaManual.replace(/"/g,'&quot;')}">✎ Manual: ${r.notaManual.length > 40 ? r.notaManual.substring(0,40)+'...' : r.notaManual}</div>` : '';
+    const btnManual = r.status !== 'processing'
+      ? `<button class="btn-manual" onclick="abrirModalManual(${i})">✎ Pago manual</button>`
+      : '';
+    return `
     <tr>
+      <td>${chk}</td>
       <td style="color:var(--on-sv)">${i+1}</td>
       <td style="font-weight:500">${r.nombre||'—'}</td>
       <td>${r.tipo||'—'}</td>
       <td>${r.monto ? '$'+parseInt(r.monto).toLocaleString('es-AR') : '—'}</td>
       <td>${r.fecha||'—'}</td>
       <td style="font-size:12px">${r.cbu||'—'}</td>
-      <td>${statusMap[r.status]||'—'}${r.error?`<div style="font-size:11px;color:var(--err);margin-top:2px">${r.error}</div>`:''}</td>
-    </tr>`).join('');
+      <td>${statusMap[r.status]||'—'}${r.error?`<div style="font-size:11px;color:var(--err);margin-top:2px">${r.error}</div>`:''}${manualTag}${btnManual}</td>
+    </tr>`;
+  }).join('');
+  actualizarBotonLote();
 
   const ok   = results.filter(r => r.status==='ok').length;
   const skip = results.filter(r => r.status==='skip').length;
@@ -597,6 +786,100 @@ function renderTabla() {
 }
 
 // ── Exportar XLS ───────────────────────────────────────────
+function toggleTodos(chk) {
+  document.querySelectorAll('.chk-lote').forEach(c => c.checked = chk.checked);
+  actualizarBotonLote();
+}
+
+function actualizarBotonLote() {
+  const chks = document.querySelectorAll('.chk-lote:checked');
+  const btn = document.getElementById('btnGuardarLote');
+  const status = document.getElementById('loteStatus');
+  if (chks.length > 0) {
+    btn.disabled = false;
+    btn.textContent = `☁ Guardar ${chks.length} seleccionado(s) en Drive`;
+    status.textContent = 'Tildá o destildá comprobantes en la tabla para ajustar qué incluir.';
+  } else {
+    btn.disabled = true;
+    btn.textContent = '☁ Guardar seleccionados en Drive';
+    status.textContent = 'Tildá los comprobantes que querés juntar en un PDF y guardar en Drive.';
+  }
+}
+
+// ── Guardar el lote de comprobantes procesados como un único PDF en Drive ──
+async function guardarLoteEnDrive() {
+  const chks = Array.from(document.querySelectorAll('.chk-lote:checked'));
+  if (!chks.length) return;
+  const seleccionados = chks.map(c => results[parseInt(c.dataset.idx, 10)]);
+
+  const btn = document.getElementById('btnGuardarLote');
+  const status = document.getElementById('loteStatus');
+  btn.disabled = true;
+  status.textContent = 'Armando el PDF combinado...';
+
+  try {
+    const PDFLib = window.PDFLib;
+    const { StandardFonts, rgb } = PDFLib;
+    const mergedPdf = await PDFLib.PDFDocument.create();
+    const font = await mergedPdf.embedFont(StandardFonts.HelveticaBold);
+
+    for (const item of seleccionados) {
+      // Página carátula, para identificar de quién es el comprobante que sigue
+      const page = mergedPdf.addPage([595, 200]);
+      page.drawText(item.nombre || 'Sin nombre', { x: 40, y: 130, size: 16, font, color: rgb(0.13, 0.29, 0.27) });
+      if (item.monto) {
+        page.drawText(`Monto: $${parseInt(item.monto).toLocaleString('es-AR')}`, { x: 40, y: 100, size: 12, font });
+      }
+
+      // Comprobante real (el backend lo convierte a PDF si era una imagen)
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=mergeDocs&fileIds=${encodeURIComponent(item.fileId)}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        const b64 = (data.pdfs && data.pdfs[0]) || null;
+        if (b64) {
+          const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+          const doc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+          const pages = await mergedPdf.copyPages(doc, doc.getPageIndices());
+          pages.forEach(p => mergedPdf.addPage(p));
+        }
+      } catch(e) {
+        addLog(`⚠ No se pudo incluir el comprobante de ${item.nombre}: ${e.message}`);
+      }
+    }
+
+    const pdfBytes = await mergedPdf.save();
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < pdfBytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, pdfBytes.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+
+    const ahora = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const fecha = `${ahora.getFullYear()}-${pad(ahora.getMonth()+1)}-${pad(ahora.getDate())}`;
+    const cursoLimpio = limpiarNombreCurso(cursoActual.nombre);
+    const nombreArchivo = `${fecha} - ${seleccionados.length} comprobantes - ${cursoLimpio}.pdf`;
+
+    status.textContent = 'Guardando en Drive...';
+    const r = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'guardarComprobantesLote', curso: cursoActual.nombre, base64, nombreArchivo })
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    status.innerHTML = `✓ Guardado: <a href="${d.url}" target="_blank">${d.nombre}</a>`;
+    addLog(`☁ Lote guardado en Drive: ${d.nombre}`);
+  } catch(e) {
+    status.textContent = '✗ Error: ' + e.message;
+    addLog('✗ Error guardando el lote: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function exportXLS() {
   const cols = ['#','Apellido y nombre','Tipo inscripción','Monto','Fecha','CBU Destino','Estado'];
   const statusLabel = {ok:'OK',skip:'Ya procesado','sin-comprobante':'Sin comprobante',error:'Error',pending:'Pendiente'};
@@ -614,7 +897,7 @@ function exportXLS() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Comprobantes');
   const safe = (cursoActual.nombre||'planilla').replace(/[^a-zA-Z0-9\s-]/g,'').trim().replace(/\s+/g,'-');
-  XLSX.writeFile(wb, `Comprobantes-${safe}.xlsx`, {bookType:'xlsx'});
+  XLSX.writeFile(wb, `Comprobantes-${safe}.xls`, {bookType:'xls'});
 }
 
 window.onload = cargarCursos;

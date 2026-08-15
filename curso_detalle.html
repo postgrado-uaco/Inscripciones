@@ -87,7 +87,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av" id="user-av">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
@@ -100,8 +100,8 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
       Herramientas
     </a>
-    <a class="sb-item" href="index.html">
-      <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></span>
+    <a class="sb-item" href="configuracion.html">
+      <span class="sb-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></span>
       Configuración
     </a>
   </nav>
@@ -188,7 +188,7 @@ async function cargar() {
     const stored = JSON.parse(sessionStorage.getItem('cursosData') || '[]');
     base = stored.find(c => normCurso(c.nombre) === normCurso(nombreParam)) ||
            stored.find(c => (c.name || '') === nameOrigParam) || null;
-  } catch(e) { console.warn('sessionStorage cursosData inválido:', e.message); }
+  } catch(e) {}
 
   // 2. Datos completos de la planilla de implementación
   let row = null, header = null;
@@ -208,7 +208,7 @@ async function cargar() {
         });
       }
     }
-  } catch(e) { console.warn('No se pudo cargar datos de implementación:', e.message); }
+  } catch(e) {}
 
   if (!base && !row) {
     content.innerHTML = '<div class="empty">No se encontró información para este curso.<br>Volvé a Inicio y hacé click en "Actualizar →" antes de ver el detalle.</div>';

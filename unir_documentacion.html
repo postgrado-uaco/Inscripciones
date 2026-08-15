@@ -158,10 +158,15 @@ h1,h2,h3,h4{font-family:var(--fh);}
       <div class="tbl-wrap">
         <div class="tbl-hdr">
           <div class="tbl-hdr-title" id="tbl-title">Inscriptos</div>
-          <button class="btn" id="btn-procesar" onclick="procesarTodos()">
-            <svg style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            Generar todos los PDF
-          </button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--on-sv);cursor:pointer">
+              <input type="checkbox" id="chkTodos" onchange="toggleTodos(this)"> Seleccionar todos
+            </label>
+            <button class="btn" id="btn-unir" disabled onclick="unirSeleccionados()">
+              <svg style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+              Unir seleccionados en un PDF
+            </button>
+          </div>
         </div>
         <div style="padding:16px" id="insc-list"></div>
       </div>
@@ -343,18 +348,14 @@ async function cargarInscriptos(curso) {
     const apIdx    = hdr.findIndex(h => norm(h).includes('apellido'));
     const nomIdx   = hdr.findIndex(h => norm(h).includes('nombre') && !norm(h).includes('apellido'));
     const dniIdx   = hdr.findIndex(h => norm(h).includes('copia') && (norm(h).includes('documento') || norm(h).includes('identidad')));
-    const titIdx   = hdr.findIndex(h => norm(h).includes('título') || norm(h).includes('titulo') && norm(h).includes('grado'));
-    const compIdx  = hdr.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('transferencia') && !norm(h).includes('externo'));
-    const compExtIdx = hdr.findIndex(h => norm(h).includes('comprobante') && norm(h).includes('externo'));
+    const titIdx   = hdr.findIndex(h => norm(h).includes('copia') && (norm(h).includes('título') || norm(h).includes('titulo')));
 
     inscriptos = raw.slice(1).filter(r => r && r.length > 0).map((r, i) => {
       const ap  = apIdx  >= 0 ? r[apIdx]?.toString().trim()  || '' : '';
       const nom = nomIdx >= 0 ? r[nomIdx]?.toString().trim() || '' : '';
       const docs = {
-        dni:     extractFileId(dniIdx     >= 0 ? r[dniIdx]?.toString()     || '' : ''),
-        titulo:  extractFileId(titIdx     >= 0 ? r[titIdx]?.toString()     || '' : ''),
-        comp:    extractFileId(compIdx    >= 0 ? r[compIdx]?.toString()    || '' : ''),
-        compExt: extractFileId(compExtIdx >= 0 ? r[compExtIdx]?.toString() || '' : ''),
+        dni:     extractFileId(dniIdx >= 0 ? r[dniIdx]?.toString() || '' : ''),
+        titulo:  extractFileId(titIdx >= 0 ? r[titIdx]?.toString() || '' : ''),
       };
       const totalDocs = Object.values(docs).filter(Boolean).length;
       return { idx: i, ap, nom, nombreCompleto: `${ap}${nom ? ', '+nom : ''}`, docs, totalDocs, status: 'pending', error: '' };
@@ -371,13 +372,11 @@ function renderInscriptos() {
   const list = document.getElementById('insc-list');
   if (!inscriptos.length) { list.innerHTML = '<div class="empty-state">Sin inscriptos.</div>'; return; }
 
-  const docLabels = { dni: 'DNI', titulo: 'Título', comp: 'Comprobante', compExt: 'Comp. Externo' };
+  const docLabels = { dni: 'DNI', titulo: 'Título' };
   const statusLabel = {
     pending: '',
-    processing: '<span class="insc-status st-proc"><span class="sp" style="border-top-color:var(--primary);border-color:rgba(33,75,70,.2)"></span> Procesando...</span>',
-    ok:       '<span class="insc-status st-ok">✓ Descargado</span>',
+    ok:       '<span class="insc-status st-ok">✓ Incluido</span>',
     error:    r => `<span class="insc-status st-err">✗ ${r.error}</span>`,
-    nodocs:   '<span class="insc-status st-pend">Sin documentos</span>',
   };
 
   list.innerHTML = '<div class="insc-list">' + inscriptos.map((r, i) => {
@@ -385,88 +384,124 @@ function renderInscriptos() {
       `<span class="doc-tag ${r.docs[k] ? 'doc-ok' : 'doc-no'}">${lbl}</span>`
     ).join('');
     const st = r.status === 'error' ? statusLabel.error(r) : (statusLabel[r.status] || '');
-    const btnIndividual = r.totalDocs > 0 && r.status !== 'processing'
-      ? `<button class="btn" style="padding:5px 12px;font-size:11.5px" onclick="procesarUno(${i})">PDF</button>`
-      : '';
+    const chk = r.totalDocs > 0
+      ? `<input type="checkbox" class="chk-insc" data-idx="${i}" onchange="actualizarBotonUnir()">`
+      : `<input type="checkbox" disabled title="Sin documentos para incluir">`;
     return `<div class="insc-row" id="row-${i}">
+      <div>${chk}</div>
       <div class="insc-name">${r.nombreCompleto || '(sin nombre)'}</div>
       <div class="insc-docs">${docTags}</div>
       ${st}
-      ${btnIndividual}
     </div>`;
   }).join('') + '</div>';
+  actualizarBotonUnir();
 }
 
-// ── PROCESAR ───────────────────────────────────────────────
-async function procesarTodos() {
-  const pendientes = inscriptos.filter(r => r.totalDocs > 0);
-  if (!pendientes.length) return;
+function toggleTodos(chk) {
+  document.querySelectorAll('.chk-insc').forEach(c => c.checked = chk.checked);
+  actualizarBotonUnir();
+}
 
-  document.getElementById('prog-wrap').style.display = 'block';
-  document.getElementById('proc-title').textContent = 'Generando PDFs...';
+function actualizarBotonUnir() {
+  const n = document.querySelectorAll('.chk-insc:checked').length;
+  const btn = document.getElementById('btn-unir');
+  btn.disabled = n === 0;
+  btn.lastChild.textContent = n > 0 ? ` Unir ${n} seleccionado(s) en un PDF` : ' Unir seleccionados en un PDF';
+}
+
+// ── UNIR SELECCIONADOS EN UN SOLO PDF ──────────────────────
+async function unirSeleccionados() {
+  const chks = Array.from(document.querySelectorAll('.chk-insc:checked'));
+  if (!chks.length) return;
+  const seleccionados = chks.map(c => inscriptos[parseInt(c.dataset.idx, 10)]);
+  seleccionados.forEach(r => { r.status = 'pending'; r.error = ''; });
+
+  const progWrap = document.getElementById('prog-wrap');
+  const btn = document.getElementById('btn-unir');
+  progWrap.style.display = 'block';
+  btn.disabled = true;
+  document.getElementById('proc-title').textContent = 'Armando el PDF combinado...';
   document.getElementById('proc-log').textContent = 'Iniciando...';
-  document.getElementById('btn-procesar').disabled = true;
-  setProg(0, pendientes.length);
-
-  let done = 0;
-  for (const r of pendientes) {
-    await procesarUno(r.idx);
-    done++;
-    setProg(done, pendientes.length);
-    await new Promise(res => setTimeout(res, 100));
-  }
-
-  document.getElementById('proc-title').textContent = '✓ Procesamiento completo';
-  document.getElementById('btn-procesar').disabled = false;
-}
-
-async function procesarUno(idx) {
-  const r = inscriptos[idx];
-  if (!r || r.totalDocs === 0) return;
-  r.status = 'processing';
-  renderInscriptos();
+  setProg(0, seleccionados.length);
 
   try {
-    // Recolectar IDs válidos en orden: DNI, Título, Comprobante, Comp. Externo
-    const fileIds = [r.docs.dni, r.docs.titulo, r.docs.comp, r.docs.compExt].filter(Boolean);
-
-    // Pedir los archivos al Apps Script
-    const res = await fetch(`${SCRIPT_URL}?action=mergeDocs&fileIds=${encodeURIComponent(fileIds.join(','))}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    // Combinar PDFs en el cliente con pdf-lib
     const PDFLib = window.PDFLib;
     const mergedPdf = await PDFLib.PDFDocument.create();
 
-    const pdfList = data.pdfs || (data.pdf ? [data.pdf] : []);
-    for (const b64 of pdfList) {
+    let done = 0;
+    for (const r of seleccionados) {
       try {
-        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-        const doc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
-        const pages = await mergedPdf.copyPages(doc, doc.getPageIndices());
-        pages.forEach(p => mergedPdf.addPage(p));
+        const fileIds = [r.docs.dni, r.docs.titulo].filter(Boolean);
+
+        const res = await fetch(`${SCRIPT_URL}?action=mergeDocs&fileIds=${encodeURIComponent(fileIds.join(','))}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const pdfList = data.pdfs || (data.pdf ? [data.pdf] : []);
+        for (const b64 of pdfList) {
+          try {
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            const doc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+            const pages = await mergedPdf.copyPages(doc, doc.getPageIndices());
+            pages.forEach(p => mergedPdf.addPage(p));
+          } catch(e) {
+            addLog(`⚠ Una página de ${r.nombreCompleto} no pudo incluirse: ${e.message}`);
+          }
+        }
+        r.status = 'ok';
+        addLog(`✓ ${r.nombreCompleto} incluido.`);
       } catch(e) {
-        addLog(`⚠ Una página no pudo incluirse: ${e.message}`);
+        r.status = 'error';
+        r.error = e.message.length > 40 ? e.message.substring(0,40)+'...' : e.message;
+        addLog(`✗ ${r.nombreCompleto}: ${e.message}`);
       }
+      done++;
+      setProg(done, seleccionados.length);
+      renderInscriptos();
     }
 
     const pdfBytes = await mergedPdf.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const filename = `Documentación-${r.nombreCompleto || 'inscripto'}.pdf`;
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
 
-    r.status = 'ok';
-    addLog(`✓ ${r.nombreCompleto} — ${mergedPdf.getPageCount()} páginas`);
+    const nombreCurso = (cursoActual && cursoActual.nombre) || 'curso';
+    const filename = seleccionados.length === 1
+      ? `Documentación - ${seleccionados[0].nombreCompleto || 'inscripto'}.pdf`
+      : `Documentación - ${nombreCurso} - ${seleccionados.length} inscriptos.pdf`;
+
+    document.getElementById('proc-title').textContent = 'Guardando...';
+    await guardarComoArchivo(blob, filename);
+
+    document.getElementById('proc-title').textContent = '✓ PDF combinado listo';
+    addLog(`✓ PDF combinado generado: ${mergedPdf.getPageCount()} páginas.`);
   } catch(e) {
-    r.status = 'error';
-    r.error = e.message.length > 40 ? e.message.substring(0,40)+'...' : e.message;
-    addLog(`✗ ${r.nombreCompleto}: ${e.message}`);
+    document.getElementById('proc-title').textContent = '✗ Error';
+    addLog(`✗ ${e.message}`);
   }
-  renderInscriptos();
+  btn.disabled = false;
+}
+
+// Usa el diálogo nativo "Guardar como" cuando el navegador lo soporta
+// (Chrome/Edge); si no, cae en la descarga normal a la carpeta de Descargas.
+async function guardarComoArchivo(blob, filename) {
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') { addLog('El guardado se canceló.'); return; }
+      addLog(`⚠ No se pudo usar el diálogo de guardado, se descarga directo: ${e.message}`);
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
 }
 
 window.onload = cargarCursos;

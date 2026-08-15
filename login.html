@@ -137,7 +137,7 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 
 <script src="auth.js"></script>
 <script>
-var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0GSXOmsD9GEvr8NsomWkFkvXLDcNrMoSiFivLLDVGx4CmogXKuQ5AFul95wXBX4RQ5g/exec';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby05rw1seqwiUpGxJKNlZTJ1-jVUTYgnj3UHixTTrGPNHha_YEIxCJevwFDwfwJiCTPWA/exec';
 var ATTEMPTS_KEY = 'pg_login_attempts';
 var MAX_ATTEMPTS = 5;
 var LOCKOUT_MS   = 60 * 1000; // 1 minuto
@@ -159,9 +159,16 @@ document.getElementById('login-form').addEventListener('submit', async function(
     return;
   }
 
-  var email = document.getElementById('inp-email').value.trim();
+  var email = document.getElementById('inp-email').value.trim().toLowerCase();
   var pwd   = document.getElementById('inp-pwd').value;
   var btn   = document.getElementById('btn-login');
+
+  if (window.location.protocol === 'file:') {
+    mostrarError('Abrí esta página desde un servidor local (por ej. Live Server) para poder iniciar sesión.');
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesión';
+    return;
+  }
 
   btn.disabled = true;
   btn.textContent = 'Verificando...';
@@ -192,7 +199,9 @@ document.getElementById('login-form').addEventListener('submit', async function(
       btn.textContent = 'Iniciar sesión';
     }
   } catch (err) {
-    mostrarError('Error de red. Verificá tu conexión e intentá de nuevo.');
+    console.error('Login fetch error:', err);
+    var detail = err && err.message ? err.message : 'sin detalle';
+    mostrarError('Error de red. Verificá tu conexión e intentá de nuevo. Detalle: ' + detail);
     btn.disabled = false;
     btn.textContent = 'Iniciar sesión';
   }

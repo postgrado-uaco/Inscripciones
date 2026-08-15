@@ -99,7 +99,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
 
 <header class="hdr">
   <div><div class="hdr-name">Secretaría de Investigación y Postgrado</div><div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div></div>
-  <div class="av" id="user-av">AD</div>
+  <div class="av">AD</div>
 </header>
 
 <div class="app-body">
@@ -134,6 +134,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
         <span class="sort-lbl">Ordenar:</span>
         <button class="sort-btn on" onclick="setSortOrder('defecto',this)" id="sort-defecto">Recientes</button>
         <button class="sort-btn" onclick="setSortOrder('nombre',this)" id="sort-nombre">A–Z</button>
+        <button class="sort-btn" onclick="setSortOrder('estado',this)" id="sort-estado">Estado</button>
       </div>
       <div id="curso-list" class="curso-list">
         <div class="empty">⏳ Cargando cursos disponibles...</div>
@@ -278,6 +279,10 @@ function sortCursos() {
     if (_sortOrder === 'defecto') {
       if (a.abierto !== b.abierto) return a.abierto ? -1 : 1;
       return parseFechaInicio(b.fecha) - parseFechaInicio(a.fecha);
+    }
+    if (_sortOrder === 'estado') {
+      if (a.abierto === b.abierto) return normNombre(a.name).localeCompare(normNombre(b.name));
+      return a.abierto ? -1 : 1;
     }
     return normNombre(a.name).localeCompare(normNombre(b.name));
   });
@@ -471,6 +476,7 @@ async function iniciarProceso(sheetId, nombre) {
 
 async function guardarDNIAlumno(sheetId, rowIdx, al) {
   const si = window._sheetIndex || 0;
+  const base = `${SCRIPT_URL}?action=saveColumna&sheetId=${encodeURIComponent(sheetId)}&rowIdx=${rowIdx}&sheetIndex=${si}`;
   const saves = [
     { col: 'Apellido (DNI)', val: al.apellido || '' },
     { col: 'Nombre (DNI)',   val: al.nombre   || '' },
@@ -479,11 +485,7 @@ async function guardarDNIAlumno(sheetId, rowIdx, al) {
   ];
   for (const s of saves) {
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'saveColumna', sheetId, rowIdx, sheetIndex: si, colName: s.col, value: s.val })
-      });
+      await fetch(`${base}&colName=${encodeURIComponent(s.col)}&value=${encodeURIComponent(s.val)}`);
     } catch(e) {
       console.warn('Error guardando DNI:', e.message);
     }
