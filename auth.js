@@ -29,6 +29,20 @@
     }, 2500);
   }
 
+  function getInitials(name) {
+    var n = (name || '').trim();
+    if (!n) return 'SIP';
+    var upper = n.toUpperCase();
+    if (upper.indexOf('SECRETARIA') >= 0 || upper.indexOf('SECRETARÍA') >= 0) {
+      return 'SIP';
+    }
+    var parts = n.split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return n.slice(0, 2).toUpperCase();
+  }
+
   window.AUTH = {
     checkAuth: function () {
       var s = getSession();
@@ -39,7 +53,13 @@
       }
       var av = document.getElementById('user-av');
       if (av) {
-        av.textContent = s.initials;
+        var initials = s.initials || 'SIP';
+        if (/SECRETAR[IAÍ]/i.test(s.name || '') || initials === 'SU') {
+          initials = 'SIP';
+          s.initials = initials;
+          localStorage.setItem(KEY, JSON.stringify(s));
+        }
+        av.textContent = initials;
         av.title = s.name + ' — ' + s.email;
         av.setAttribute('aria-label', 'Usuario: ' + s.name);
         av.style.cursor = 'pointer';
@@ -76,10 +96,7 @@
     },
 
     saveSession: function (name, email, token) {
-      var parts = name.trim().split(/\s+/);
-      var initials = parts.length >= 2
-        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-        : name.slice(0, 2).toUpperCase();
+      var initials = getInitials(name);
       var data = { name: name, email: email, initials: initials, token: token || '', exp: Date.now() + 6 * 3600 * 1000 };
       localStorage.setItem(KEY, JSON.stringify(data));
       return data;

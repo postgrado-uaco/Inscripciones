@@ -26,7 +26,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
 .hdr{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;position:sticky;top:0;z-index:100;}
 .hdr-name{font-family:var(--fh);font-size:15px;font-weight:700;}
 .hdr-sub{font-size:12px;opacity:.7;margin-top:1px;}
-.av{width:34px;height:34px;border-radius:50%;background:var(--on-pc);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);}
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#dff7f3 0%,#bfe9e2 100%);border:2px solid rgba(255,255,255,.7);box-shadow:0 0 0 2px rgba(33,75,70,.14),0 8px 18px rgba(33,75,70,.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--primary);user-select:none;transition:transform .15s ease, box-shadow .15s ease;} .av:hover{transform:translateY(-1px);box-shadow:0 0 0 2px rgba(33,75,70,.2),0 10px 22px rgba(33,75,70,.16);}
 
 .app-body{display:flex;flex:1;overflow:hidden;}
 
@@ -182,7 +182,7 @@ h1,h2,h3,h4{font-family:var(--fh);}
     <div class="hdr-name">Secretaría de Investigación y Postgrado</div>
     <div class="hdr-sub">Unidad Académica Caleta Olivia - Universidad Nacional de la Patagonia Austral</div>
   </div>
-  <div class="av">AD</div>
+  <div class="av" id="user-av" aria-label="Usuario" title="Usuario">SIP</div>
 </header>
 
 <div class="app-body">
@@ -658,6 +658,8 @@ function renderCursos(cursos, apiKey) {
   }
 }
 </script>
-<script>AUTH.checkAuth();</script>
+<script>
+  AUTH.checkAuth();
+</script>
 </body>
 </html>
